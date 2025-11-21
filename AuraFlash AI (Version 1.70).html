@@ -1,0 +1,1345 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraFlash AI (V1.70 - Sound FX & Animation)</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font --><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style type="text/tailwindcss">
+        /* Custom CSS */
+        :root {
+            --bg-start: #f0f2f5;
+            --bg-end: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --glow-color: 0 0 10px rgba(59, 130, 246, 0.7), 0 0 20px rgba(236, 72, 153, 0.7);
+            --title-shadow: 0 0 10px rgba(59, 130, 246, 0.8), 0 0 20px rgba(236, 72, 153, 0.8);
+            --input-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-start: #111827;
+            --bg-end: #0f172a;
+            --card-bg: #1f2937;
+            --text-color: #e5e7eb;
+            --input-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.4), 0 2px 10px -2px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: all 0.5s ease-in-out;
+            background-image: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            background-attachment: fixed; /* Keeps gradient fixed during scroll */
+        }
+
+        #main-title { text-shadow: var(--title-shadow); transition: text-shadow 0.3s ease; }
+        #input-container { box-shadow: var(--input-shadow), var(--glow-color); transition: box-shadow 0.3s ease, transform 0.2s ease; }
+        #input-container:hover { transform: translateY(-2px); }
+        
+        .user-message { background-color: #3b82f6; align-self: flex-end; border-bottom-right-radius: 0.25rem !important; }
+        .ai-message { background-color: #ec4899; align-self: flex-start; border-bottom-left-radius: 0.25rem !important; }
+        .ai-image-message img, .ai-video-message video { max-width: 100%; height: auto; border-radius: 1rem; margin-top: 0.5rem; }
+
+        .view-switch { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Floating Animation for Persona Icons */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .listening { color: #ec4899 !important; text-shadow: 0 0 5px rgba(236, 72, 153, 0.8); }
+
+        /* Updated Styles for Gradients & Curves */
+        /* Reduced padding for better fit on one row */
+        .nav-btn { @apply px-4 py-2 sm:px-5 sm:py-3 rounded-2xl font-medium text-sm transition duration-300 hover:scale-[1.05] border-0 whitespace-nowrap; }
+        .action-btn, .footer-btn, .calc-btn { @apply px-6 py-3 rounded-2xl font-medium text-sm transition duration-300 hover:scale-[1.05] border-0; }
+        
+        .nav-active { @apply ring-4 ring-offset-2 ring-offset-gray-100 dark:ring-offset-gray-900 ring-opacity-60; }
+        
+        .game-card, .tool-card { @apply flex flex-col items-center justify-center p-6 rounded-3xl text-white font-bold transition duration-300 hover:scale-[1.05] cursor-pointer shadow-lg border-0; }
+        .tool-card { height: 8rem; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        .result-box { @apply mt-6 p-5 rounded-3xl shadow-inner bg-gray-100 dark:bg-gray-800 text-left text-gray-800 dark:text-gray-200; }
+
+        /* Tech Interface Styles */
+        .tech-modal { background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)), repeating-linear-gradient(0deg, transparent, transparent 2px, #000 3px, #000 3px); background-size: cover; }
+        .tech-glow-blue { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2), inset 0 0 20px rgba(6, 182, 212, 0.1); }
+        .tech-glow-pink { box-shadow: 0 0 20px rgba(236, 72, 153, 0.2), inset 0 0 20px rgba(236, 72, 153, 0.1); }
+        .tech-font { font-family: 'JetBrains Mono', monospace; }
+        .tech-user-msg { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
+        .tech-ai-msg-blue { background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.4); color: #A5F3FC; }
+        .tech-ai-msg-pink { background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.4); color: #FBCFE8; }
+        .tts-btn.playing { animation: pulse-green 1s infinite; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        /* Studio Tab Button Styling */
+        .studio-tab-btn {
+            @apply px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800;
+        }
+        .studio-tab-btn.active-image {
+            @apply bg-pink-500 text-white border-pink-500 shadow-lg shadow-pink-500/30;
+        }
+        .studio-tab-btn.active-video {
+            @apply bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/30;
+        }
+
+        /* Tic Tac Toe Styles */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 250px; height: 250px; margin-top: 10px; }
+        .ttt-cell { 
+            background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 0, 0, 0.1); border-radius: 1.5rem;
+            display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold;
+            cursor: pointer; transition: all 0.2s; color: #374151;
+        }
+        [data-theme="dark"] .ttt-cell { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); color: #e5e7eb; }
+        .ttt-cell:hover { background: rgba(59, 130, 246, 0.1); transform: scale(1.02); }
+        .ttt-cell.x { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .ttt-cell.o { color: #ec4899; text-shadow: 0 0 10px rgba(236, 72, 153, 0.5); }
+
+        /* Pac-Man Styles */
+        .ctrl-btn {
+            width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; 
+            cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.1);
+        }
+        .ctrl-btn:active { background: rgba(255,255,255,0.4); transform: scale(0.95); }
+        
+        /* Video Player Overlay */
+        .video-overlay {
+            @apply absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer rounded-2xl;
+        }
+        
+        /* Persona Switch Button */
+        .persona-switch-btn {
+            @apply px-4 py-1 border rounded font-mono text-sm tracking-widest transition-all duration-300 cursor-pointer flex items-center gap-2;
+        }
+        .persona-switch-btn:hover {
+            @apply bg-opacity-30 transform scale-105;
+        }
+
+        /* Camera Overlay Scanner Effect */
+        .scanner-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(0, 255, 0, 0.8);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            animation: scan 2s infinite linear;
+            z-index: 10;
+        }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+        
+        .camera-corner {
+            position: absolute; width: 20px; height: 20px; border-color: rgba(255, 255, 255, 0.7); z-index: 5;
+        }
+    </style>
+    <script>
+        tailwind.config = { darkMode: ['class', '[data-theme="dark"]'], theme: { extend: { colors: { 'aura-blue': '#3b82f6', 'aura-pink': '#ec4899', 'aura-green': '#10b981', 'aura-yellow': '#f59e0b', 'aura-indigo': '#6366f1' } } } }
+    </script>
+</head>
+<body class="min-h-screen p-4 sm:p-8 flex justify-center items-start text-gray-800 dark:text-gray-200">
+
+    <div id="app-container" class="w-full max-w-4xl relative">
+        <!-- Header -->
+        <header class="mb-8 text-center relative">
+            <!-- Neuralis Icon (With Floating Animation) -->
+            <button onclick="openTechInterface('neuralis'); playSound('click')" class="absolute top-2 left-0 lg:-left-16 hidden md:flex flex-col items-center opacity-80 hover:opacity-100 transition duration-500 animate-float cursor-pointer group" title="Access Neuralis Interface">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/50 group-hover:ring-4 ring-blue-400/50 transition-all">
+                    <i class="fas fa-microchip text-white text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold text-blue-500 mt-2 tracking-widest uppercase group-hover:text-blue-400">Neuralis</span>
+            </button>
+
+            <!-- Zephyr Icon (With Floating Animation & Delay) -->
+            <button onclick="openTechInterface('zephyr'); playSound('click')" class="absolute top-2 right-0 lg:-right-16 hidden md:flex flex-col items-center opacity-80 hover:opacity-100 transition duration-500 animate-float cursor-pointer group" style="animation-delay: 1.5s;" title="Access Zephyr Interface">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/50 group-hover:ring-4 ring-pink-400/50 transition-all"><i class="fas fa-wind text-white text-2xl"></i></div>
+                <span class="text-[10px] font-bold text-pink-500 mt-2 tracking-widest uppercase group-hover:text-pink-400">Zephyr</span>
+            </button>
+
+            <h1 id="main-title" class="text-5xl sm:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-aura-blue to-aura-pink dark:from-sky-400 dark:to-fuchsia-400">AuraFlash AI</h1>
+            <p class="mt-2 text-xl font-light dark:text-gray-400">Version 1.70 - Sound FX & Animation</p>
+            <div class="mt-6 flex justify-center flex-wrap gap-2 sm:gap-4">
+                <button onclick="toggleView('chat'); playSound('click')" id="chat-btn" class="nav-btn bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:shadow-[0_0_25px_rgba(59,130,246,0.8)]"><i class="fas fa-comment mr-2"></i> Chat</button>
+                <button onclick="toggleView('studio'); playSound('click')" id="studio-btn" class="nav-btn bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-[0_0_15px_rgba(236,72,153,0.5)] hover:shadow-[0_0_25px_rgba(236,72,153,0.8)]"><i class="fas fa-layer-group mr-2"></i> Studio</button>
+                <button onclick="toggleView('games'); playSound('click')" id="games-btn" class="nav-btn bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] hover:shadow-[0_0_25px_rgba(139,92,246,0.8)]"><i class="fas fa-gamepad mr-2"></i> Games</button>
+                <button onclick="toggleView('creator'); playSound('click')" id="creator-btn" class="nav-btn bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:shadow-[0_0_25px_rgba(99,102,241,0.8)]"><i class="fas fa-pen-nib mr-2"></i> Creator</button>
+                <button onclick="toggleView('vision'); playSound('click')" id="vision-btn" class="nav-btn bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-purple-700 hover:to-fuchsia-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(168,85,247,0.8)]"><i class="fas fa-eye mr-2"></i> Vision</button>
+                <button onclick="toggleView('tools'); playSound('click')" id="tools-btn" class="nav-btn bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)] hover:shadow-[0_0_25px_rgba(34,197,94,0.8)]"><i class="fas fa-tools mr-2"></i> Tools</button>
+            </div>
+        </header>
+
+        <div id="content-view" class="bg-white/50 dark:bg-gray-800/50 p-6 rounded-3xl shadow-2xl backdrop-blur-md min-h-[60vh] transition-colors duration-500">
+            <!-- Chat View -->
+            <div id="chat-view" class="view-switch h-full flex flex-col justify-between">
+                <div id="chat-window" class="flex-grow overflow-y-auto space-y-4 p-2 mb-4 h-96 custom-scrollbar">
+                    <div class="flex justify-center w-full mb-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-pink-500 p-6 rounded-3xl shadow-lg text-white w-full max-w-3xl text-center border-2 border-white/20 shadow-[0_0_20px_rgba(236,72,153,0.3)]">
+                            <h2 class="text-3xl font-extrabold mb-3 flex items-center justify-center">Welcome to AuraFlash AI! <i class="fas fa-sparkles ml-2 text-yellow-300"></i></h2>
+                            <p class="text-base md:text-lg font-medium opacity-95 leading-relaxed">
+                                I'm your combined model, now powered by the analytical <b>Neuralis</b> core and the rapid <b>Zephyr</b> core. Ready to assist with creativity, research, code, and calculation! Let's start building awesome together!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div id="input-container" class="flex p-2 rounded-2xl bg-white dark:bg-gray-700 transition duration-300">
+                    <button onclick="startVoiceCommand(); playSound('click')" id="voice-input-btn" class="flex items-center justify-center w-12 h-12 rounded-full text-gray-500 hover:text-aura-blue transition duration-200"><i class="fas fa-microphone" id="mic-icon"></i></button>
+                    <input type="text" id="user-input" placeholder="Ask me anything..." class="flex-grow mx-2 px-4 bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100" onkeydown="handleInput(event)">
+                    <button onclick="summarizeChat(); playSound('click')" class="flex-shrink-0 w-12 h-12 rounded-full bg-aura-green/80 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition duration-300 mr-2"><span class="text-xl">✨</span></button>
+                    <button onclick="sendMessage(); playSound('click')" id="send-btn" class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-aura-blue to-aura-pink text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition duration-300"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <!-- STUDIO VIEW (Unified) -->
+            <div id="studio-view" class="view-switch hidden h-full flex flex-col items-center justify-start">
+                <div class="flex justify-center space-x-4 mb-6 w-full max-w-2xl">
+                    <button onclick="switchStudioTab('image'); playSound('click')" id="studio-tab-image" class="studio-tab-btn active-image flex-1"><i class="fas fa-palette mr-2"></i> Image Generation</button>
+                    <button onclick="switchStudioTab('video'); playSound('click')" id="studio-tab-video" class="studio-tab-btn flex-1"><i class="fas fa-video mr-2"></i> Video Generation</button>
+                </div>
+
+                <!-- IMAGEN 3 PANEL -->
+                <div id="studio-image-panel" class="w-full max-w-2xl bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl border border-pink-500/30 transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-4 text-gray-700 dark:text-gray-200"><i class="fas fa-sparkles mr-2 text-pink-500"></i> Powered by Imagen 3</h3>
+                    <div id="generated-image-container" class="w-full h-80 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 overflow-hidden relative group">
+                        <p class="text-gray-400" id="studio-placeholder">Your creation will appear here</p>
+                        <img id="studio-result" class="hidden w-full h-full object-contain" alt="Generated Image">
+                        <button id="download-btn" class="hidden absolute bottom-4 right-4 px-4 py-2 bg-black/70 text-white rounded-xl hover:bg-black/90 transition-all" onclick="downloadImage()"><i class="fas fa-download mr-2"></i> Save</button>
+                    </div>
+
+                    <textarea id="studio-prompt" placeholder="Describe your imagination... (e.g., A cyberpunk city with neon lights, rainy street)" class="w-full p-4 h-24 rounded-2xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 mb-4 focus:ring-pink-500 focus:border-pink-500"></textarea>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider self-center mr-2">Styles:</span>
+                        <button onclick="addToPrompt('Cinematic lighting, highly detailed, 8k'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-pink-200 dark:hover:bg-pink-900 transition-colors">🎬 Cinematic</button>
+                        <button onclick="addToPrompt('Pixel art style, retro game aesthetic'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-pink-200 dark:hover:bg-pink-900 transition-colors">👾 Pixel Art</button>
+                        <button onclick="addToPrompt('Anime style, vibrant colors, studio ghibli inspired'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-pink-200 dark:hover:bg-pink-900 transition-colors">🌸 Anime</button>
+                        <button onclick="addToPrompt('Oil painting, impressionist style, van gogh inspired'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-pink-200 dark:hover:bg-pink-900 transition-colors">🎨 Oil Paint</button>
+                    </div>
+
+                    <button onclick="generateImage(); playSound('click')" id="studio-btn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-lg shadow-lg hover:scale-[1.02] transition-transform shadow-pink-500/30">
+                        ✨ Generate Image
+                    </button>
+                </div>
+                
+                <!-- CINEFLASH PANEL (VIDEO) -->
+                <div id="studio-video-panel" class="hidden w-full max-w-2xl bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl border border-orange-500/30 transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-4 text-gray-700 dark:text-gray-200"><i class="fas fa-film mr-2 text-orange-500"></i> Powered by CineFlash 1.5</h3>
+                    <div id="generated-video-container" class="w-full h-80 bg-gray-900 rounded-2xl mb-6 flex items-center justify-center border-2 border-dashed border-gray-700 overflow-hidden relative group">
+                        <p class="text-gray-500" id="video-placeholder">Video Preview Screen</p>
+                        <div id="video-loader" class="hidden flex-col items-center z-10">
+                             <i class="fas fa-circle-notch fa-spin text-4xl text-orange-500 mb-2"></i>
+                             <span class="text-orange-400 text-sm animate-pulse">Generating Keyframes...</span>
+                        </div>
+                        <!-- SMART VIDEO PLAYER -->
+                        <div id="video-result" class="hidden w-full h-full absolute inset-0 bg-black">
+                             <!-- We use the generated image as a poster/thumbnail -->
+                             <img id="video-thumbnail" class="w-full h-full object-cover opacity-60" src="">
+                             <!-- Play Overlay -->
+                             <div class="video-overlay flex flex-col items-center justify-center" onclick="playMockVideo()">
+                                <i class="fas fa-play-circle text-7xl text-white drop-shadow-lg hover:scale-110 transition-transform"></i>
+                                <span class="text-white text-sm font-bold mt-2 bg-black/50 px-2 py-1 rounded">PREVIEW GENERATED</span>
+                             </div>
+                        </div>
+                    </div>
+
+                    <textarea id="video-prompt" placeholder="Describe the video scene... (e.g., A drone shot flying over a misty mountain range at sunrise)" class="w-full p-4 h-24 rounded-2xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 mb-4 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider self-center mr-2">Presets:</span>
+                        <button onclick="addToVideoPrompt('Drone shot, wide angle, smooth motion'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-orange-200 dark:hover:bg-orange-900 transition-colors">🚁 Drone Shot</button>
+                        <button onclick="addToVideoPrompt('Time-lapse, fast forward, dynamic'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-orange-200 dark:hover:bg-orange-900 transition-colors">⏳ Time-Lapse</button>
+                        <button onclick="addToVideoPrompt('Cinematic, 24fps, film grain'); playSound('click')" class="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-orange-200 dark:hover:bg-orange-900 transition-colors">🎥 Cinematic</button>
+                    </div>
+
+                    <button onclick="generateVideo(); playSound('click')" id="video-btn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-lg shadow-lg hover:scale-[1.02] transition-transform shadow-orange-500/30">
+                        🎬 Generate Video Clip
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Other views -->
+            <div id="games-view" class="view-switch hidden h-full flex flex-col items-center justify-center">
+                <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-gray-200">🎮 Games</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl">
+                    <button onclick="startGame('tic-tac-toe'); playSound('click')" class="game-card bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-[0_0_15px_rgba(59,130,246,0.4)]"><i class="fas fa-th text-4xl mb-2"></i><span>Tic-Tac-Toe</span></button>
+                    <button onclick="startGame('pac-man'); playSound('click')" class="game-card bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 shadow-[0_0_15px_rgba(236,72,153,0.4)]"><i class="fas fa-ghost text-4xl mb-2"></i><span>Pac-Man</span></button>
+                    <button onclick="startGame('snake-ladder'); playSound('click')" class="game-card bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-purple-700 hover:to-fuchsia-600 shadow-[0_0_15px_rgba(168,85,247,0.4)]"><i class="fas fa-dice text-4xl mb-2"></i><span>Snake</span></button>
+                    <button onclick="generateNewQuizUI(); playSound('click')" class="game-card bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 shadow-[0_0_15px_rgba(34,197,94,0.4)]"><i class="fas fa-question-circle text-4xl mb-2"></i><span>Quiz</span></button>
+                </div>
+                <div class="mt-4 w-full max-w-3xl">
+                    <button onclick="startGame('debate-duel'); playSound('click')" class="w-full py-4 rounded-3xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold text-xl shadow-lg hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(99,102,241,0.4)]"><i class="fas fa-comments mr-2"></i> Debate Duel ✨ (Neuralis vs Zephyr)</button>
+                </div>
+                <div id="game-container" class="mt-8 w-full max-w-3xl p-6 bg-gray-100 dark:bg-gray-900 rounded-3xl border-4 border-dashed border-gray-400 dark:border-gray-600 min-h-[20rem] flex items-center justify-center flex-col text-center dark:text-gray-300">Select a game!</div>
+            </div>
+            
+            <div id="creator-view" class="view-switch hidden h-full flex flex-col items-center justify-start">
+                <h2 class="text-3xl font-bold mb-8 text-gray-700 dark:text-gray-200"><i class="fas fa-pen-nib mr-3 text-aura-indigo"></i> Creative Editor</h2>
+                <div class="w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700">
+                    <textarea id="creative-editor" placeholder="Start your story..." class="w-full p-4 h-48 rounded-2xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 mb-4"></textarea>
+                    <div class="flex flex-wrap gap-3 mb-6">
+                         <button onclick="continueCreativeWriting(); playSound('click')" id="continue-btn" class="flex-grow calc-btn bg-gradient-to-r from-indigo-600 to-purple-500 text-white font-bold">✨ Continue</button>
+                         <button onclick="fixGrammar(); playSound('click')" id="grammar-btn" class="flex-grow calc-btn bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold">✨ Fix Grammar</button>
+                         <select id="tone-selector" class="flex-shrink-0 w-32 p-3 rounded-2xl border dark:bg-gray-700 dark:text-gray-100"><option value="casual">Casual</option><option value="formal">Formal</option></select>
+                         <button onclick="changeTextTone(); playSound('click')" id="tone-btn" class="flex-shrink-0 w-32 calc-btn bg-gradient-to-r from-gray-500 to-slate-500 text-white font-bold">✨ Rephrase</button>
+                    </div>
+                    <div id="editor-result" class="p-4 mt-4 rounded-3xl shadow-inner bg-gray-100 dark:bg-gray-800 text-left text-sm text-gray-600 dark:text-gray-400">Results appear here.</div>
+                </div>
+            </div>
+            <div id="vision-view" class="view-switch hidden h-full flex flex-col items-center justify-start">
+                <h2 class="text-3xl font-bold mb-8 text-gray-700 dark:text-gray-200"><i class="fas fa-camera mr-3 text-purple-500"></i> Vision</h2>
+                <div class="w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700">
+                    <!-- VISION TAB WITH HYBRID INPUT (CLICK + PASTE) -->
+                    <div id="image-drop-area" class="mb-6 p-4 border-4 border-dashed border-purple-300 dark:border-purple-600 rounded-3xl text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onclick="document.getElementById('vision-file-input').click()">
+                        <p class="text-sm font-semibold mb-2 dark:text-gray-400">Click to Upload or Paste Image (Ctrl+V)</p>
+                        <img id="analysis-image" class="w-full h-auto max-h-64 object-contain mx-auto rounded-xl shadow-md" src="https://placehold.co/300x160/6D28D9/FFFFFF?text=Upload+Image">
+                        <input type="file" id="vision-file-input" class="hidden" accept="image/*" onchange="handleFileUpload(event)">
+                        <!-- Clear Button -->
+                        <button onclick="event.stopPropagation(); clearVisionImage(); playSound('click')" id="clear-img-btn" class="hidden absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-all z-10 shadow-md" title="Clear Image"><i class="fas fa-times"></i></button>
+                    </div>
+                    
+                    <input type="text" id="vision-prompt" placeholder="Ask a question about the image..." class="w-full p-3 rounded-2xl border dark:bg-gray-700 dark:text-gray-100 mb-6">
+                    
+                    <!-- ANALYZE BUTTON -->
+                    <button onclick="triggerVisionAnalysis(); playSound('click')" id="vision-btn-submit" class="w-full calc-btn bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white font-bold flex items-center justify-center">
+                        <span>Analyze Image</span>
+                    </button>
+
+                    <div id="vision-result-card" class="result-box hidden"><p id="vision-analysis-text" class="text-sm mt-3 text-gray-600 dark:text-gray-400"></p></div>
+                </div>
+            </div>
+            <div id="tools-view" class="view-switch hidden h-full flex flex-col items-center justify-start">
+                <h2 class="text-3xl font-bold mb-8 text-gray-700 dark:text-gray-200"><i class="fas fa-tools mr-3 text-aura-green"></i> Utilities</h2>
+                <div id="tools-menu" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
+                    <button onclick="openTool('tool-bmi'); playSound('click')" class="tool-card bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 shadow-[0_0_15px_rgba(34,197,94,0.4)]"><i class="fas fa-ruler-combined text-3xl mb-2"></i><span class="text-lg font-semibold">BMI</span></button>
+                    <button onclick="openTool('tool-dream'); playSound('click')" class="tool-card bg-gradient-to-r from-indigo-600 to-violet-500 hover:from-indigo-700 hover:to-violet-600 shadow-[0_0_15px_rgba(99,102,241,0.4)]"><i class="fas fa-moon text-3xl mb-2"></i><span class="text-lg font-semibold">Dream</span></button>
+                    <button onclick="openTool('tool-planner'); playSound('click')" class="tool-card bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-[0_0_15px_rgba(59,130,246,0.4)]"><i class="fas fa-tasks text-3xl mb-2"></i><span class="text-lg font-semibold">Planner</span></button>
+                    <button onclick="openTool('tool-chef'); playSound('click')" class="tool-card bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-[0_0_15px_rgba(249,115,22,0.4)]"><i class="fas fa-utensils text-3xl mb-2"></i><span class="text-lg font-semibold">Chef</span></button>
+                    <button onclick="openTool('tool-translator'); playSound('click')" class="tool-card bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 shadow-[0_0_15px_rgba(236,72,153,0.4)]"><i class="fas fa-language text-3xl mb-2"></i><span class="text-lg font-semibold">Translator</span></button>
+                    <button onclick="openTool('tool-aqi'); playSound('click')" class="tool-card bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-700 hover:to-teal-600 shadow-[0_0_15px_rgba(6,182,212,0.4)]"><i class="fas fa-wind text-3xl mb-2"></i><span class="text-lg font-semibold">AQI</span></button>
+                    <!-- RESTORED: Code Architect (Wide) -->
+                    <button onclick="openTool('tool-code'); playSound('click')" class="tool-card bg-gradient-to-r from-slate-700 to-slate-500 hover:from-slate-800 hover:to-slate-600 shadow-[0_0_15px_rgba(100,116,139,0.4)] col-span-1 md:col-span-3"><i class="fas fa-code text-3xl mb-2"></i><span class="text-lg font-semibold">Code Architect ✨</span></button>
+                    <!-- RESTORED: Mood Tunes, Truth Sleuth, Lingo Leap -->
+                    <button onclick="openTool('tool-tunes'); playSound('click')" class="tool-card bg-gradient-to-r from-fuchsia-600 to-purple-500 hover:from-fuchsia-700 hover:to-purple-600 shadow-[0_0_15px_rgba(192,38,211,0.4)]"><i class="fas fa-music text-3xl mb-2"></i><span class="text-lg font-semibold">Mood Tunes ✨</span></button>
+                    <button onclick="openTool('tool-truth'); playSound('click')" class="tool-card bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-[0_0_15px_rgba(234,179,8,0.4)]"><i class="fas fa-search text-3xl mb-2"></i><span class="text-lg font-semibold">Truth Sleuth ✨</span></button>
+                    <button onclick="openTool('tool-lingo'); playSound('click')" class="tool-card bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-700 hover:to-emerald-600 shadow-[0_0_15px_rgba(20,184,166,0.4)]"><i class="fas fa-comments text-3xl mb-2"></i><span class="text-lg font-semibold">Lingo Leap ✨</span></button>
+                    <!-- RESTORED: Explain It (Wide) -->
+                    <button onclick="openTool('tool-explain'); playSound('click')" class="tool-card bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 shadow-[0_0_15px_rgba(139,92,246,0.4)] col-span-1 md:col-span-3"><i class="fas fa-lightbulb text-3xl mb-2"></i><span class="text-lg font-semibold">Explain It! (Simplifier) ✨</span></button>
+                </div>
+                <!-- Tools UI Hidden -->
+                <!-- FIXED: Added 'hidden' class explicitly to all result-box divs -->
+                <div id="tool-bmi" class="hidden w-full max-w-md bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-bmi'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white">BMI</h3><input id="weight" placeholder="Weight (kg)" class="w-full p-3 mb-4 rounded-2xl border"><input id="height" placeholder="Height (m)" class="w-full p-3 mb-4 rounded-2xl border"><button onclick="calculateBMI(); playSound('click')" class="w-full calc-btn bg-green-500 text-white">Calculate</button><div id="bmi-result-card" class="hidden mt-4 text-center"><div id="bmi-value" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600 mb-2"></div><p id="bmi-advice" class="dark:text-white"></p></div></div>
+                <div id="tool-dream" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-dream'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white">Dream Analyzer</h3><textarea id="dream-input" class="w-full p-3 mb-4 rounded-2xl border h-32"></textarea><button onclick="analyzeDream(); playSound('click')" id="dream-btn" class="w-full calc-btn bg-indigo-500 text-white">Interpret</button><div id="dream-result" class="result-box hidden"><p></p></div></div>
+                <div id="tool-planner" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-planner'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white">Study Planner</h3><input id="plan-topic" placeholder="Topic" class="w-full p-3 mb-4 rounded-2xl border"><input id="plan-time" placeholder="Duration" class="w-full p-3 mb-4 rounded-2xl border"><button onclick="generateStudyPlan(); playSound('click')" id="plan-btn" class="w-full calc-btn bg-blue-500 text-white">Plan</button><div id="plan-result" class="result-box hidden"><div></div></div></div>
+                <div id="tool-chef" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-chef'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white">Chef Aura</h3><textarea id="chef-input" class="w-full p-3 mb-4 rounded-2xl border h-32"></textarea><button onclick="generateRecipe(); playSound('click')" id="chef-btn" class="w-full calc-btn bg-orange-500 text-white">Cook</button><div id="chef-result" class="result-box hidden"><div></div></div></div>
+                <div id="tool-translator" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-translator'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white">Polyglot Pal</h3><textarea id="trans-input" class="w-full p-3 mb-4 rounded-2xl border h-24"></textarea><input id="trans-lang" placeholder="Target Language" class="w-full p-3 mb-4 rounded-2xl border"><button onclick="translateText(); playSound('click')" id="trans-btn" class="w-full calc-btn bg-pink-500 text-white">Translate</button><div id="trans-result" class="result-box hidden"><p></p></div></div>
+                <div id="tool-aqi" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-aqi'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white">AQI Monitor</h3><input id="aqi-location" placeholder="Location" class="w-full p-3 mb-4 rounded-2xl border"><button onclick="checkAQI(); playSound('click')" id="aqi-btn" class="w-full calc-btn bg-cyan-500 text-white">Check</button><div id="aqi-result" class="hidden mt-4 text-center"><div id="aqi-value-display" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-2"></div><div id="aqi-text" class="text-gray-600 dark:text-gray-300"></div></div></div>
+                <div id="tool-code" class="hidden w-full max-w-3xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl"><button onclick="closeTool('tool-code'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white flex items-center justify-center"><i class="fas fa-code mr-2 text-slate-400"></i> Code Architect</h3><p class="text-center text-sm text-gray-500 mb-6">Describe what you want to build, and I'll write the code.</p><textarea id="code-input" placeholder="e.g. Python script to calculate Fibonacci numbers..." class="w-full p-4 h-32 rounded-2xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-slate-500 focus:border-slate-500 font-mono mb-4"></textarea><button onclick="generateCode(); playSound('click')" id="code-btn" class="w-full calc-btn bg-slate-700 text-white hover:bg-slate-800">✨ Generate Code</button><div id="code-result" class="result-box bg-slate-900 text-green-400 font-mono text-sm whitespace-pre p-4 overflow-x-auto hidden"></div></div>
+                <div id="tool-tunes" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-fuchsia-500/30"><button onclick="closeTool('tool-tunes'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white flex items-center justify-center"><i class="fas fa-music mr-2 text-fuchsia-500"></i> Mood Tunes</h3><p class="text-center text-sm text-gray-500 mb-6">Enter your mood or activity, and I'll curate a mini-playlist.</p><input id="tunes-input" placeholder="e.g. Coding late at night, Workout pump, Rainy day..." class="w-full p-3 mb-4 rounded-2xl border dark:bg-gray-800 dark:border-gray-700"><button onclick="generatePlaylist(); playSound('click')" id="tunes-btn" class="w-full calc-btn bg-fuchsia-500 text-white hover:bg-fuchsia-600">✨ Generate Playlist</button><div id="tunes-result" class="result-box hidden"><div></div></div></div>
+                <div id="tool-truth" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-yellow-500/30"><button onclick="closeTool('tool-truth'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button><h3 class="text-2xl font-bold mb-4 dark:text-white flex items-center justify-center"><i class="fas fa-search mr-2 text-yellow-500"></i> Truth Sleuth</h3><p class="text-center text-sm text-gray-500 mb-6">Enter a statement or myth. I'll verify it using Google Search grounding.</p><input id="truth-input" placeholder="e.g. Do goldfish have a 3-second memory?" class="w-full p-3 mb-4 rounded-2xl border dark:bg-gray-800 dark:border-gray-700"><button onclick="verifyFact(); playSound('click')" id="truth-btn" class="w-full calc-btn bg-yellow-500 text-white hover:bg-yellow-600">✨ Verify Fact</button><div id="truth-result" class="result-box hidden"><div></div></div></div>
+
+                <!-- LINGO LEAP (NEW) -->
+                <div id="tool-lingo" class="hidden w-full max-w-xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-teal-500/30">
+                    <button onclick="closeTool('tool-lingo'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button>
+                    <h3 class="text-2xl font-bold mb-4 dark:text-white flex items-center justify-center"><i class="fas fa-comments mr-2 text-teal-500"></i> Lingo Leap</h3>
+                    <p class="text-center text-sm text-gray-500 mb-6">Immersive language roleplay practice.</p>
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <input id="lingo-lang" placeholder="Target Language (e.g. Spanish)" class="w-full p-3 rounded-2xl border dark:bg-gray-800 dark:border-gray-700">
+                        <input id="lingo-scenario" placeholder="Scenario (e.g. Ordering coffee)" class="w-full p-3 rounded-2xl border dark:bg-gray-800 dark:border-gray-700">
+                    </div>
+                    <button onclick="startLingo(); playSound('click')" id="lingo-btn" class="w-full calc-btn bg-teal-500 text-white hover:bg-teal-600">✨ Start Conversation</button>
+                    <div id="lingo-result" class="result-box hidden"><div></div></div>
+                </div>
+
+                <!-- EXPLAIN IT (NEW) -->
+                <div id="tool-explain" class="hidden w-full max-w-3xl bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-purple-500/30">
+                    <button onclick="closeTool('tool-explain'); playSound('click')" class="mb-4"><i class="fas fa-arrow-left"></i> Back</button>
+                    <h3 class="text-2xl font-bold mb-4 dark:text-white flex items-center justify-center"><i class="fas fa-lightbulb mr-2 text-purple-500"></i> Explain It!</h3>
+                    <p class="text-center text-sm text-gray-500 mb-6">Simplify complex topics for any audience.</p>
+                    <textarea id="explain-topic" placeholder="Enter a complex topic or paste text..." class="w-full p-4 h-32 rounded-2xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 mb-4"></textarea>
+                    <div class="flex gap-2 mb-4">
+                         <select id="explain-level" class="w-full p-3 rounded-2xl border dark:bg-gray-800 dark:border-gray-700">
+                             <option value="5-year old">Like I'm 5</option>
+                             <option value="High School Student">High School</option>
+                             <option value="Expert">Expert</option>
+                         </select>
+                         <button onclick="explainTopic(); playSound('click')" id="explain-btn" class="w-full calc-btn bg-purple-500 text-white hover:bg-purple-600">✨ Explain</button>
+                    </div>
+                    <div id="explain-result" class="result-box hidden"><div></div></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 flex flex-col items-center">
+            <div class="flex justify-center space-x-4 mb-4">
+                <button onclick="exportChat(); playSound('click')" class="footer-btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"><i class="fas fa-file-export mr-2"></i> Export</button>
+                <button onclick="loadHistory(); playSound('click')" class="footer-btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"><i class="fas fa-history mr-2"></i> History</button>
+                <button onclick="openSettings(); playSound('click')" class="footer-btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"><i class="fas fa-cog mr-2"></i> Settings</button>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 text-center">AuraFlash AI can make mistakes, so double-check it. Check important info.</p>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100"><i class="fas fa-cog mr-2 text-gray-500"></i> Settings</h2>
+                <button onclick="closeSettings(); playSound('click')" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Theme Toggle -->
+                <div class="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-500 mr-4"><i class="fas fa-adjust"></i></div>
+                        <span class="font-medium text-gray-700 dark:text-gray-200">Appearance</span>
+                    </div>
+                    <button onclick="toggleTheme(); playSound('click')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-xl text-sm font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition">Switch Theme</button>
+                </div>
+
+                <!-- Background Templates -->
+                <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-500 mr-4"><i class="fas fa-palette"></i></div>
+                        <span class="font-medium text-gray-700 dark:text-gray-200">Background Themes</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setGradient('default'); playSound('click')" class="h-10 rounded-xl bg-gradient-to-br from-gray-200 to-white border-2 border-gray-300 hover:scale-105 transition transform" title="Default/Reset"></button>
+                        <button onclick="setGradient('cyber'); playSound('click')" class="h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 border-2 border-transparent hover:scale-105 transition transform" title="Cyber"></button>
+                        <button onclick="setGradient('ocean'); playSound('click')" class="h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 border-2 border-transparent hover:scale-105 transition transform" title="Ocean"></button>
+                        <button onclick="setGradient('sunset'); playSound('click')" class="h-10 rounded-xl bg-gradient-to-br from-orange-400 to-rose-500 border-2 border-transparent hover:scale-105 transition transform" title="Sunset"></button>
+                    </div>
+                </div>
+
+                <!-- Sound FX Toggle -->
+                <div class="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-500 mr-4"><i class="fas fa-volume-up"></i></div>
+                        <span class="font-medium text-gray-700 dark:text-gray-200">Sound FX</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="sound-toggle" class="sr-only peer" onchange="toggleSoundFX()">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-xs text-gray-400">
+                AuraFlash AI v1.70 • Powered by Gemini
+            </div>
+        </div>
+    </div>
+
+    <!-- Neuralis Interface -->
+    <div id="neuralis-interface" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md transition-opacity duration-300 p-4">
+        <div class="w-full max-w-5xl h-[85vh] bg-slate-900 rounded-3xl border-2 border-cyan-500 tech-glow-blue flex flex-col relative overflow-hidden tech-modal">
+            <div class="flex justify-between items-center p-6 border-b border-cyan-500/30 bg-slate-900/80">
+                <!-- Persona Switch Button -->
+                <button onclick="openTechInterface('zephyr'); closeTechInterface('neuralis'); playSound('click')" class="persona-switch-btn text-cyan-400 border-cyan-500 bg-cyan-900/20 hover:text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]" title="Switch to Zephyr">
+                    NEURALIS <i class="fas fa-exchange-alt ml-2"></i>
+                </button>
+
+                <div class="flex items-center text-2xl font-bold text-cyan-100 tracking-wider tech-font"><i class="fas fa-microchip text-cyan-400 mr-3 animate-pulse shadow-cyan-500/50"></i> NEURALIS.I/F</div>
+                <div class="text-green-400 font-mono text-xs tracking-widest flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> STATUS: ONLINE</div>
+                <button onclick="closeTechInterface('neuralis'); playSound('click')" class="absolute top-6 right-6 text-cyan-500 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="neuralis-chat-content" class="flex-grow p-6 overflow-y-auto font-mono text-cyan-100/90 space-y-4 custom-scrollbar bg-slate-900/50">
+                <div class="tech-ai-msg-blue p-4 rounded-lg rounded-tl-none max-w-[80%] self-start shadow-lg backdrop-blur-sm"><div class="flex items-center mb-2 text-xs text-cyan-300 opacity-70"><i class="fas fa-terminal mr-2"></i> SYSTEM_INIT</div>Neuralis Core online. Logical processing unit active. Awaiting input.</div>
+            </div>
+            <div class="p-6 bg-slate-900/90 border-t border-cyan-500/30">
+                 <div class="flex items-center bg-slate-800 rounded-full border border-cyan-500/50 p-2 shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all focus-within:shadow-[0_0_25px_rgba(6,182,212,0.3)] focus-within:border-cyan-400">
+                    <!-- Camera Button -->
+                    <button onclick="startCamera('neuralis'); playSound('click')" class="w-10 h-10 rounded-full flex items-center justify-center transition-all mr-2 text-sm cursor-pointer text-cyan-500 border border-cyan-500/50 hover:bg-cyan-500/20" title="Visual Scan"><i class="fas fa-camera"></i></button>
+                    
+                    <input type="text" id="neuralis-input" class="flex-grow bg-transparent text-cyan-100 px-4 outline-none font-mono text-sm placeholder-cyan-700" placeholder="Enter command..." onkeydown="handleTechInput(event, 'neuralis')">
+                    <button onclick="startTechVoiceCommand('neuralis'); playSound('click')" id="neuralis-mic-btn" class="w-10 h-10 rounded-full flex items-center justify-center transition-all mr-4 text-sm cursor-pointer text-cyan-500 border border-cyan-500/50 hover:bg-cyan-500/20" title="Voice Input"><i class="fas fa-microphone"></i></button>
+                    <button onclick="sendTechMessage('neuralis'); playSound('click')" class="w-10 h-10 bg-cyan-600 rounded-full text-white flex items-center justify-center hover:bg-cyan-400 shadow-lg transition-all"><i class="fas fa-paper-plane text-sm"></i></button>
+                 </div>
+                 <p class="text-xs text-cyan-700 mt-2 text-center font-mono">AuraFlash AI - Neuralis can make mistakes, so double-check it. Check important info.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zephyr Interface -->
+    <div id="zephyr-interface" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md transition-opacity duration-300 p-4">
+        <div class="w-full max-w-5xl h-[85vh] bg-slate-900 rounded-3xl border-2 border-pink-500 tech-glow-pink flex flex-col relative overflow-hidden tech-modal">
+            <div class="flex justify-between items-center p-6 border-b border-pink-500/30 bg-slate-900/80">
+                <!-- Persona Switch Button -->
+                <button onclick="openTechInterface('neuralis'); closeTechInterface('zephyr'); playSound('click')" class="persona-switch-btn text-pink-400 border-pink-500 bg-pink-900/20 hover:text-pink-200 shadow-[0_0_10px_rgba(236,72,153,0.3)]" title="Switch to Neuralis">
+                    ZEPHYR <i class="fas fa-exchange-alt ml-2"></i>
+                </button>
+
+                <div class="flex items-center text-2xl font-bold text-pink-100 tracking-wider tech-font"><i class="fas fa-wind text-pink-400 mr-3 animate-pulse shadow-pink-500/50"></i> ZEPHYR.I/F</div>
+                <div class="text-green-400 font-mono text-xs tracking-widest flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> STATUS: ONLINE</div>
+                <button onclick="closeTechInterface('zephyr'); playSound('click')" class="absolute top-6 right-6 text-pink-500 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="zephyr-chat-content" class="flex-grow p-6 overflow-y-auto font-mono text-pink-100/90 space-y-4 custom-scrollbar bg-slate-900/50">
+                <div class="tech-ai-msg-pink p-4 rounded-lg rounded-tl-none max-w-[80%] self-start shadow-lg backdrop-blur-sm"><div class="flex items-center mb-2 text-xs text-pink-300 opacity-70"><i class="fas fa-sparkles mr-2"></i> CREATIVE_FLOW_INIT</div>Zephyr Stream active. Ready to imagine.</div>
+            </div>
+            <div class="p-6 bg-slate-900/90 border-t border-pink-500/30">
+                 <div class="flex items-center bg-slate-800 rounded-full border border-pink-500/50 p-2 shadow-[0_0_15px_rgba(236,72,153,0.1)] transition-all focus-within:shadow-[0_0_25px_rgba(236,72,153,0.3)] focus-within:border-pink-400">
+                    <!-- Camera Button -->
+                    <button onclick="startCamera('zephyr'); playSound('click')" class="w-10 h-10 rounded-full flex items-center justify-center transition-all mr-2 text-sm cursor-pointer text-pink-500 border border-pink-500/50 hover:bg-pink-500/20" title="Visual Scan"><i class="fas fa-camera"></i></button>
+                    
+                    <input type="text" id="zephyr-input" class="flex-grow bg-transparent text-pink-100 px-4 outline-none font-mono text-sm placeholder-pink-700" placeholder="Enter command..." onkeydown="handleTechInput(event, 'zephyr')">
+                    <button onclick="startTechVoiceCommand('zephyr'); playSound('click')" id="zephyr-mic-btn" class="w-10 h-10 rounded-full flex items-center justify-center transition-all mr-4 text-sm cursor-pointer text-pink-500 border border-pink-500/50 hover:bg-pink-500/20" title="Voice Input"><i class="fas fa-microphone"></i></button>
+                    <button onclick="sendTechMessage('zephyr'); playSound('click')" class="w-10 h-10 bg-pink-600 rounded-full text-white flex items-center justify-center hover:bg-pink-400 shadow-lg transition-all"><i class="fas fa-paper-plane text-sm"></i></button>
+                 </div>
+                 <p class="text-xs text-pink-700 mt-2 text-center font-mono">AuraFlash AI - Zephyr can make mistakes, so double-check it. Check important info.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Overlay (Hidden by default) -->
+    <div id="camera-overlay" class="hidden fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center">
+        <div class="relative w-full max-w-lg aspect-video bg-black border-2 border-white/20 rounded-2xl overflow-hidden shadow-2xl">
+            <video id="camera-feed" class="w-full h-full object-cover" autoplay playsinline></video>
+            <canvas id="camera-canvas" class="hidden"></canvas>
+            <div class="scanner-line"></div>
+            <div class="camera-corner top-4 left-4 border-t-2 border-l-2 rounded-tl-lg"></div>
+            <div class="camera-corner top-4 right-4 border-t-2 border-r-2 rounded-tr-lg"></div>
+            <div class="camera-corner bottom-4 left-4 border-b-2 border-l-2 rounded-bl-lg"></div>
+            <div class="camera-corner bottom-4 right-4 border-b-2 border-r-2 rounded-br-lg"></div>
+        </div>
+        <div class="mt-8 flex gap-4">
+            <button onclick="closeCamera(); playSound('click')" class="px-6 py-3 rounded-full bg-gray-700 text-white hover:bg-gray-600 font-bold">Cancel</button>
+            <button onclick="captureAndAnalyze(); playSound('click')" class="px-8 py-3 rounded-full bg-red-600 text-white hover:bg-red-500 font-bold shadow-lg shadow-red-500/50 animate-pulse">SCAN & ANALYZE</button>
+        </div>
+        <p class="mt-4 text-xs text-gray-400 font-mono">AI VISION MODULE ACTIVE</p>
+    </div>
+
+    <script>
+        const chatWindow=document.getElementById('chat-window'),userInput=document.getElementById('user-input'),sendButton=document.getElementById('send-btn');
+        const chatView=document.getElementById('chat-view'),gamesView=document.getElementById('games-view'),toolsView=document.getElementById('tools-view'),creatorView=document.getElementById('creator-view'),visionView=document.getElementById('vision-view'),studioView=document.getElementById('studio-view');
+        const micIcon=document.getElementById('mic-icon'),voiceInputBtn=document.getElementById('voice-input-btn'),analysisImage=document.getElementById('analysis-image');
+        const apiKey = ""; 
+        const TEXT_MODEL="gemini-2.5-flash-preview-09-2025",IMAGE_MODEL="imagen-3.0-generate-001",TTS_MODEL="gemini-2.5-flash-preview-tts";
+        const TEXT_API_URL=`https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent`;
+        const TTS_API_URL=`https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent`;
+        const IMAGE_API_URL=`https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:predict`;
+        let chatHistory=[],neuralisHistory=[],zephyrHistory=[],isLoading=false,isListening=false,currentAudio=null,currentBase64Image=null,currentMimeType=null;
+        let activeCameraPersona = null; let cameraStream = null;
+        
+        // --- SOUND FX SYSTEM ---
+        let soundEnabled = false;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function toggleSoundFX() {
+            const toggle = document.getElementById('sound-toggle');
+            soundEnabled = toggle.checked;
+            if (soundEnabled && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            if (soundEnabled) playSound('click');
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'click') {
+                // High-tech blip
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                // Success chime
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function formatAIResponse(text) {
+            if (!text) return "";
+            const codeBlocks = [];
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                codeBlocks.push(`<div class="bg-slate-950 p-4 rounded-xl my-3 font-mono text-sm text-emerald-400 overflow-x-auto whitespace-pre border border-slate-700">${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
+                return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+            });
+            let formatted = text.replace(/\$\$/g, ''); 
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            formatted = formatted.replace(/^##\s*(.*$)/gm, '<b>$1</b><br>'); 
+            formatted = formatted.replace(/^\*\s*/gm, '• '); 
+            formatted = formatted.replace(/\n/g, '<br>'); 
+            formatted = formatted.replace(/`/g, ''); 
+            formatted = formatted.replace(/__CODE_BLOCK_(\d+)__/g, (match, index) => codeBlocks[index]);
+            return formatted;
+        }
+
+        function base64ToArrayBuffer(e){const t=atob(e),n=t.length,r=new Uint8Array(n);for(let a=0;a<n;a++)r[a]=t.charCodeAt(a);return r.buffer}
+        function writeString(e,t,n){for(let r=0;r<n.length;r++)e.setUint8(t+r,n.charCodeAt(r))}
+        function pcmToWav(e,t=24e3){const n=1,r=e.length,a=new ArrayBuffer(44+2*r),o=new DataView(a);writeString(o,0,"RIFF"),o.setUint32(4,36+2*r,!0),writeString(o,8,"WAVE"),writeString(o,12,"fmt "),o.setUint32(16,16,!0),o.setUint16(20,1,!0),o.setUint16(22,n,!0),o.setUint32(24,t,!0),o.setUint32(28,t*2*n,!0),o.setUint16(32,2*n,!0),o.setUint16(34,16,!0),writeString(o,36,"data"),o.setUint32(40,2*r,!0);let c=44;for(let s=0;s<r;s++)o.setInt16(c,e[s],!0),c+=2;return new Blob([o],{type:"audio/wav"})}
+        function showTemporaryMessage(e,t){const n=document.querySelector(".temporary-message-modal");n&&n.remove();const r="error"===t?"bg-red-600":"warning"===t?"bg-yellow-600":"info"===t?"bg-aura-blue":"bg-green-600",a="error"===t?"fa-exclamation-triangle":"warning"===t?"fa-exclamation-circle":"info"===t?"fa-info-circle":"fa-check-circle",o=document.createElement("div");o.className="temporary-message-modal fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-4 transition-opacity duration-300",o.innerHTML=`<div class="p-6 rounded-2xl shadow-2xl text-white font-semibold flex items-center ${r}"><i class="fas ${a} mr-3 text-xl"></i><span>${e}</span></div>`,document.body.appendChild(o),setTimeout(()=>{o.style.opacity="0",o.addEventListener("transitionend",()=>o.remove())},3e3)}
+        
+        async function fetchWithExponentialBackoff(e,t,n=5){
+            const r = `${e}?key=${apiKey}`; 
+            for(let a=0;a<n;a++)try{const o=await fetch(r,t);if(429!==o.status&&o.ok)return o;if(429===o.status&&a<n-1){const c=Math.pow(2,a)*1e3+1e3*Math.random();await new Promise(e=>setTimeout(e,c));continue}else return o}catch(o){if(a===n-1)throw o;const c=Math.pow(2,a)*1e3+1e3*Math.random();await new Promise(e=>setTimeout(e,c))}
+        }
+        
+        function openTechInterface(e){document.getElementById(`${e}-interface`).classList.remove("hidden")}
+        function closeTechInterface(e){document.getElementById(`${e}-interface`).classList.add("hidden")}
+        function handleTechInput(e,t){"Enter"===e.key&&sendTechMessage(t)}
+        const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;let recognition=null;const mainAppVoiceResult=e=>{const t=e.results[0][0].transcript;userInput.value=t,sendMessage()},mainAppVoiceEnd=()=>toggleVoiceInputState(!1);SpeechRecognition&&(recognition=new SpeechRecognition,recognition.continuous=!1,recognition.lang="en-US",recognition.interimResults=!1,recognition.onresult=mainAppVoiceResult,recognition.onend=mainAppVoiceEnd,recognition.onerror=e=>{toggleVoiceInputState(!1),showTemporaryMessage(`Voice Error: ${e.error}`,"error")});
+        function toggleVoiceInputState(e){isListening=e,document.getElementById("voice-input-btn").title=e?"Listening...":"Voice Input",document.getElementById("mic-icon").className=e?"fas fa-microphone listening":"fas fa-microphone"}
+        function startVoiceCommand(){recognition?isListening?recognition.stop():(recognition.start(),toggleVoiceInputState(!0)):showTemporaryMessage("No speech support","error")}
+        
+        function startTechVoiceCommand(e){
+            if(!recognition) return showTemporaryMessage("No speech support","error");
+            
+            // Stop any existing session first
+            if(isListening) {
+                recognition.stop();
+                isListening = false;
+                // If we clicked the same button that was active, just return (toggle off)
+                const activeBtn = document.querySelector('.listening'); 
+                if (document.getElementById(`${e}-mic-btn`).classList.contains('animate-pulse')) {
+                     toggleVoiceInputState(false); // Ensure global state is clean
+                     return;
+                }
+            }
+
+            const t=document.getElementById(`${e}-mic-btn`),n=document.getElementById(`${e}-input`);
+            
+            // UI Classes for active state
+            const r="neuralis"===e?"bg-cyan-500 text-white animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.8)]":"bg-pink-500 text-white animate-pulse shadow-[0_0_15px_rgba(236,72,153,0.8)]";
+            // UI Classes for inactive state
+            const a="neuralis"===e?"text-cyan-500 border border-cyan-500/50 hover:bg-cyan-500/20":"text-pink-500 border border-pink-500/50 hover:bg-pink-500/20";
+            
+            const o=()=>{
+                t.className=`w-10 h-10 rounded-full flex items-center justify-center transition-all mr-4 text-sm cursor-pointer ${a}`;
+                t.title="Voice Input";
+                isListening = false;
+                // Restore main app handlers just in case
+                recognition.onresult=mainAppVoiceResult;
+                recognition.onend=mainAppVoiceEnd;
+            };
+            
+            t.className=`w-10 h-10 rounded-full flex items-center justify-center transition-all mr-4 text-sm cursor-pointer ${r}`;
+            t.title="Listening...";
+            isListening = true;
+            
+            recognition.onstart=()=>{};
+            recognition.onresult=evt=>{
+                const val=evt.results[0][0].transcript;
+                n.value=val;
+                o();
+            };
+            recognition.onerror=err=>{
+                console.error("Voice Error:",err.error);
+                o();
+            };
+            recognition.onend=()=>{
+                o();
+            };
+            
+            try{recognition.start()}catch(err){
+                recognition.stop();
+                setTimeout(()=>recognition.start(),100)
+            }
+        }
+        
+        function startCamera(p){
+            activeCameraPersona = p;
+            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}}).then(s=>{
+                    cameraStream=s; document.getElementById("camera-feed").srcObject=s; document.getElementById("camera-overlay").classList.remove("hidden");
+                }).catch(e=>showTemporaryMessage("Camera Access Denied","error"));
+            } else showTemporaryMessage("Camera not supported","error");
+        }
+        function closeCamera(){
+            if(cameraStream) { cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
+            document.getElementById("camera-feed").srcObject=null;
+            document.getElementById("camera-overlay").classList.add("hidden");
+            activeCameraPersona = null;
+        }
+        function captureAndAnalyze(){
+            const v=document.getElementById("camera-feed"), c=document.getElementById("camera-canvas");
+            c.width=v.videoWidth; c.height=v.videoHeight;
+            c.getContext("2d").drawImage(v,0,0);
+            const d=c.toDataURL("image/png").split(",")[1];
+            const currentPersona = activeCameraPersona; // Capture before closing
+            closeCamera();
+            if (currentPersona) analyzeCapturedImage(d,"image/png",currentPersona);
+        }
+        async function analyzeCapturedImage(d,m,p){
+            const c=document.getElementById(`${p}-chat-content`);
+            const u=document.createElement("div");u.className="tech-user-msg p-4 rounded-lg rounded-tr-none max-w-[80%] self-end shadow-lg backdrop-blur-sm text-right ml-auto mb-4";
+            u.innerHTML=`<div class="flex items-center justify-end mb-2 text-xs text-gray-400 opacity-70">VISUAL INPUT ACQUIRED <i class="fas fa-camera ml-2"></i></div><img src="data:${m};base64,${d}" class="w-32 ml-auto rounded border border-white/20">`;
+            c.appendChild(u);c.scrollTop=c.scrollHeight;
+            
+            const lId=`load-${Date.now()}`;const l=document.createElement("div");l.id=lId;
+            const col=p==='neuralis'?'tech-ai-msg-blue':'tech-ai-msg-pink';
+            l.className=`${col} p-4 rounded-lg rounded-tl-none max-w-[80%] self-start shadow-lg backdrop-blur-sm mb-4`;
+            l.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Scanning...';
+            c.appendChild(l);
+
+            const prompt = p==='neuralis' ? "Analyze this image. Simulate a biometric scan: Identify apparent age range, gender, facial expression, and estimate height based on available visual cues (make a reasonable guess). Maintain a professional, analytical tone. Format as: **SUBJECT ANALYSIS**" : "Look at this image! What's the vibe? Read the person's mood, expression, and aura. Give me a creative, energetic reading of their current state and a fun height guess. Be artistic!";
+
+            try {
+                const r=await fetchWithExponentialBackoff(TEXT_API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt},{inlineData:{mimeType:m,data:d}}]}]})});
+                const j=await r.json(); const txt=j.candidates[0].content.parts[0].text;
+                document.getElementById(lId).remove();
+                
+                const a=document.createElement("div");a.className=`${col} p-4 rounded-lg rounded-tl-none max-w-[80%] self-start shadow-lg backdrop-blur-sm mb-4`;
+                a.innerHTML=`<div class="flex items-center mb-2 text-xs opacity-70"><i class="fas ${p==='neuralis'?'fa-microchip':'fa-wind'} mr-2"></i> ANALYSIS COMPLETE</div>${formatAIResponse(txt)}`;
+                const b=document.createElement("button");b.className="tts-btn float-right ml-2";b.innerHTML='<i class="fas fa-volume-up"></i>';
+                b.onclick=e=>{e.stopPropagation();readMessageAloud(txt.replace(/<[^>]*>?/gm,""),b,p==='neuralis'?'Fenrir':'Kore')};
+                a.insertBefore(b,a.firstChild);
+                c.appendChild(a); c.scrollTop=c.scrollHeight;
+                playSound('success');
+            } catch(e){ document.getElementById(lId).innerHTML="Scan Failed."; }
+        }
+        function clearVisionImage(){ 
+            analysisImage.src="https://placehold.co/300x160/6D28D9/FFFFFF?text=Upload+Image"; 
+            currentBase64Image=null; 
+            document.getElementById('vision-btn-submit').disabled = false; 
+        }
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // Create an image object to resize
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1024;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; } 
+                        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.8);
+                    
+                    analysisImage.src = dataUrl;
+                    currentBase64Image = dataUrl.split(',')[1];
+                    currentMimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                    
+                    document.getElementById('vision-btn-submit').disabled = false;
+                    showTemporaryMessage("Image uploaded & processed!", "info");
+                    playSound('success');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handlePaste(e){
+            if(!visionView.classList.contains("hidden")){
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for(let n=0; n<items.length; n++){
+                    if(items[n].type.indexOf("image") === 0){
+                        const blob = items[n].getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                let width = img.width;
+                                let height = img.height;
+                                const maxDim = 1024;
+                                if (width > maxDim || height > maxDim) {
+                                    if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; } 
+                                    else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+                                }
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+                                const dataUrl = canvas.toDataURL('image/png', 0.8);
+                                
+                                analysisImage.src = dataUrl;
+                                currentBase64Image = dataUrl.split(',')[1];
+                                currentMimeType = 'image/png';
+                                
+                                document.getElementById('vision-btn-submit').disabled = false;
+                                showTemporaryMessage("Image pasted & processed!", "info");
+                                playSound('success');
+                            };
+                            img.src = evt.target.result;
+                        };
+                        reader.readAsDataURL(blob);
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        }
+
+        async function triggerVisionAnalysis() {
+            if (!currentBase64Image) return showTemporaryMessage("Please upload or paste an image first!", "warning");
+            const prompt = document.getElementById("vision-prompt").value.trim() || "Describe this image in detail.";
+            const btn = document.getElementById("vision-btn-submit");
+            const resultCard = document.getElementById("vision-result-card");
+            const resultText = document.getElementById("vision-analysis-text");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
+            resultCard.classList.remove("hidden");
+            resultText.textContent = "Processing visual data...";
+            try {
+                const response = await fetchWithExponentialBackoff(TEXT_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            role: "user",
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: currentMimeType || "image/png", data: currentBase64Image } }
+                            ]
+                        }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`API Failed (${response.status}): ${errText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.candidates || !data.candidates[0].content) {
+                    throw new Error("Safety block or empty response.");
+                }
+                
+                const text = data.candidates[0].content.parts[0].text;
+                resultText.innerHTML = formatAIResponse(text);
+                playSound('success');
+            } catch (e) {
+                resultText.innerHTML = `<span class="text-red-500">Error: ${e.message}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Analyze Image';
+            }
+        }
+
+        async function sendTechMessage(e){const t=document.getElementById(`${e}-input`),n=document.getElementById(`${e}-chat-content`),r=t.value.trim();if(!r||isLoading)return;const a=document.createElement("div");a.className="tech-user-msg p-4 rounded-lg rounded-tr-none max-w-[80%] self-end shadow-lg backdrop-blur-sm text-right ml-auto mb-4",a.innerHTML=`<div class="flex items-center justify-end mb-2 text-xs text-gray-400 opacity-70">USER_INPUT <i class="fas fa-user ml-2"></i></div>${r}`,n.appendChild(a),t.value="",n.scrollTop=n.scrollHeight;const o=`loading-${Date.now()}`,c=document.createElement("div"),s="neuralis"===e?"tech-ai-msg-blue":"tech-ai-msg-pink",i="neuralis"===e?"fa-microchip":"fa-wind";c.id=o,c.className=`${s} p-4 rounded-lg rounded-tl-none max-w-[80%] self-start shadow-lg backdrop-blur-sm mb-4`,c.innerHTML=`<div class="flex items-center mb-2 text-xs opacity-70"><i class="fas ${i} mr-2"></i> PROCESSING</div><i class="fas fa-circle-notch fa-spin"></i> Analyzing...`,n.appendChild(c),n.scrollTop=n.scrollHeight,isLoading=!0;let l="neuralis"===e?"You are Neuralis, a highly advanced, sophisticated AI similar to J.A.R.V.I.S. Your tone is polite, formal, slightly witty, and hyper-analytical. You value efficiency and logic above all. Address the user respectfully (e.g., 'Sir'). Start responses with status updates like 'Analyzing...', 'Processing...', or 'I have found...' where appropriate.":"You are Zephyr, a tactical and adaptive AI system similar to F.R.I.D.A.Y, but focused on creativity. Your tone is crisp, confident, and ready for action. You focus on execution, innovation, and 'getting it done'. Use phrases like 'On it', ' deploying creative assets', or 'solutions rendered'.";const curHist = e === 'neuralis' ? neuralisHistory : zephyrHistory; curHist.push({role: "user", parts: [{text: r}]}); try{playSound('click'); const resp=await runGeminiText(r,curHist,l);document.getElementById(o).remove();const a=document.createElement("div");a.className=`${s} p-4 rounded-lg rounded-tl-none max-w-[80%] self-start shadow-lg backdrop-blur-sm mb-4`;const c=document.createElement("div");c.className="flex items-center justify-between mb-2 text-xs opacity-70",c.innerHTML=`<div class="flex items-center"><i class="fas ${i} mr-2"></i> RESPONSE_OK</div>`;const u=document.createElement("button");u.className="tts-btn ml-2 hover:text-white transition-colors",u.innerHTML='<i class="fas fa-volume-up"></i>',u.title="Read",u.onclick=t=>{t.stopPropagation(),readMessageAloud(resp.replace(/<[^>]*>?/gm,""),u,"neuralis"===e?"Fenrir":"Kore")},c.appendChild(u),a.appendChild(c);const d=document.createElement("div");d.innerHTML=formatAIResponse(resp),a.appendChild(d),n.appendChild(a),n.scrollTop=n.scrollHeight;curHist.push({role:"model",parts:[{text:resp}]}); playSound('success');}catch(e){console.error(e),document.getElementById(o).innerHTML=`SYSTEM ERROR: ${e.message}`}finally{isLoading=!1}}
+        function toggleTheme(){const e=document.documentElement.getAttribute("data-theme"),t="dark"===e?"light":"dark";document.documentElement.setAttribute("data-theme",t),document.body.classList.toggle("dark"),localStorage.setItem("theme",t)}
+        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
+        function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+        // NEW: Dynamic Title Gradient Function
+        function setGradient(type) {
+            const body = document.body;
+            const title = document.getElementById('main-title');
+            const root = document.documentElement;
+            
+            body.style.backgroundImage = ''; // Reset inline style
+            
+            // Base classes for title (preserving layout/font)
+            const baseClasses = "text-5xl sm:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r";
+
+            if (type === 'cyber') {
+                // Background: Indigo -> Pink
+                body.style.backgroundImage = 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)';
+                // Title: White -> Pink-200 (High contrast on dark/saturated bg)
+                title.className = `${baseClasses} from-white to-pink-300 drop-shadow-md`;
+                // Shadow: Indigo/Pink glow
+                root.style.setProperty('--title-shadow', '0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(236, 72, 153, 0.8)');
+            } else if (type === 'ocean') {
+                // Background: Blue -> Cyan
+                body.style.backgroundImage = 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)';
+                // Title: White -> Cyan-200
+                title.className = `${baseClasses} from-white to-cyan-200 drop-shadow-md`;
+                // Shadow: Blue/Cyan glow
+                root.style.setProperty('--title-shadow', '0 0 10px rgba(59, 130, 246, 0.8), 0 0 20px rgba(6, 182, 212, 0.8)');
+            } else if (type === 'sunset') {
+                // Background: Amber -> Orange
+                body.style.backgroundImage = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
+                // Title: White -> Amber-200
+                title.className = `${baseClasses} from-white to-amber-200 drop-shadow-md`;
+                // Shadow: Orange/Red glow
+                root.style.setProperty('--title-shadow', '0 0 10px rgba(245, 158, 11, 0.8), 0 0 20px rgba(249, 115, 22, 0.8)');
+            } else {
+                // Default
+                // Title: Original Blue -> Pink
+                title.className = `${baseClasses} from-aura-blue to-aura-pink dark:from-sky-400 dark:to-fuchsia-400`;
+                // Reset Shadow to CSS default (by removing inline property)
+                root.style.removeProperty('--title-shadow');
+            }
+        }
+
+        function toggleView(e){
+            stopCurrentGame(); 
+            if(e !== 'vision') clearVisionImage();
+            const t={chat:chatView,games:gamesView,tools:toolsView,vision:visionView,creator:creatorView,studio:studioView},n={chat:document.getElementById("chat-btn"),games:document.getElementById("games-btn"),tools:document.getElementById("tools-btn"),vision:document.getElementById("vision-btn"),creator:document.getElementById("creator-btn"),studio:document.getElementById("studio-btn")};"vision"===e?document.addEventListener("paste",handlePaste):document.removeEventListener("paste",handlePaste);for(const r in t)r===e?(t[r].classList.remove("hidden"),n[r].classList.add("nav-active")):(t[r].classList.add("hidden"),n[r].classList.remove("nav-active"));
+            if(e === 'studio') switchStudioTab('image');
+        }
+
+        function switchStudioTab(tab) {
+            const imgPanel = document.getElementById('studio-image-panel');
+            const vidPanel = document.getElementById('studio-video-panel');
+            const imgBtn = document.getElementById('studio-tab-image');
+            const vidBtn = document.getElementById('studio-tab-video');
+            if (tab === 'image') {
+                imgPanel.classList.remove('hidden');
+                vidPanel.classList.add('hidden');
+                imgBtn.classList.add('active-image');
+                vidBtn.classList.remove('active-video');
+            } else {
+                imgPanel.classList.add('hidden');
+                vidPanel.classList.remove('hidden');
+                imgBtn.classList.remove('active-image');
+                vidBtn.classList.add('active-video');
+            }
+        }
+
+        function openTool(e){document.getElementById("tools-menu").classList.add("hidden"),document.getElementById(e).classList.remove("hidden")}
+        function closeTool(e){document.getElementById(e).classList.add("hidden"),document.getElementById("tools-menu").classList.remove("hidden")}
+        async function runGeminiText(e,t=null,n=null){const r=t||[{role:"user",parts:[{text:e}]}],a={contents:r,tools:[{google_search:{}}]};n&&(a.systemInstruction={parts:[{text:n}]});const o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(a)},c=await fetchWithExponentialBackoff(TEXT_API_URL,o);if(!c.ok){let s=await c.text();throw new Error(`API Error (${c.status}): ${s}`)}const s=await c.json(),i=s.candidates?.[0];let l=i?.content?.parts?.[0]?.text||"Error.";const u=i?.groundingMetadata?.groundingAttributions?.map(e=>({uri:e.web?.uri,title:e.web?.title})).filter(e=>e.uri&&e.title)||[];return u.length>0&&(l+=`<div class="mt-3 pt-2 border-t border-white/30 text-xs opacity-80"><strong>Sources:</strong> ${u.map(e=>`<a href="${e.uri}" target="_blank" class="underline hover:opacity-100">${e.title}</a>`).join(" | ")}</div>`),l}
+        async function sendMessage(){if(isLoading)return;const e=userInput.value.trim();if(!e)return;isLoading=!0,userInput.disabled=!0,sendButton.disabled=!0,appendMessage(e,"user"),chatHistory.push({role:"user",parts:[{text:e}]}),appendMessage("","loading"); try{playSound('click'); const t=chatHistory.slice(-10),n=await runGeminiText(e,t,"You are AuraFlash AI, friendly and helpful.");removeLoadingMessage(),appendMessage(n,"ai"),chatHistory.push({role:"model",parts:[{text:n.replace(/<[^>]*>?/gm,"")}]}); playSound('success');}catch(e){console.error(e),removeLoadingMessage(),appendMessage(`Error: ${e.message}`,"ai")}finally{isLoading=!1,userInput.disabled=!1,sendButton.disabled=!1,userInput.value="",userInput.focus()}}
+        function appendMessage(e,t,n=null){const r=document.createElement("div");r.className=`flex mb-4 ${"user"===t?"justify-end":"justify-start"} view-switch`,r.id="loading"===t?"loading-message":"";const a=document.createElement("div");a.className="p-3 rounded-2xl max-w-xs md:max-w-md shadow-lg break-words flex items-start flex-col";const o=document.createElement("div");if("user"===t)a.classList.add("user-message","text-white"),o.textContent=e,a.appendChild(o);else if("ai"===t||"ai-media"===t){if(a.classList.add("ai-message","text-white","dark:text-gray-100"),o.innerHTML=e?`<i class="fas fa-robot mr-2 flex-shrink-0 mt-1"></i><div>${formatAIResponse(e)}</div>`:`<i class="fas fa-robot mr-2 flex-shrink-0 mt-1"></i>`,a.appendChild(o),n){const c=document.createElement("div");c.className="mt-2 w-full",c.innerHTML=n,a.appendChild(c)}if(e&&!e.includes("Summary:")&&!e.includes("Error:")){const c=document.createElement("button");c.className="tts-btn flex-shrink-0 mt-1",c.innerHTML='<i class="fas fa-volume-up"></i>',c.onclick=t=>{t.stopPropagation(),readMessageAloud(o.textContent.replace("🤖","").trim(),c)},a.appendChild(c)}}else"loading"===t&&(a.classList.add("ai-message","text-white","dark:text-gray-100","animate-pulse"),a.innerHTML='<i class="fas fa-robot mr-2"></i>AuraFlash is thinking...');r.appendChild(a),chatWindow.appendChild(r),chatWindow.scrollTop=chatWindow.scrollHeight}
+        function removeLoadingMessage(){const e=document.getElementById("loading-message");e&&e.remove()}
+        function handleInput(e){"Enter"===e.key&&sendMessage()}
+        async function summarizeChat(){if(isLoading||chatHistory.length<2)return showTemporaryMessage("Start a conversation first!","warning");isLoading=!0,userInput.disabled=!0,sendButton.disabled=!0;const e=chatHistory.filter(e=>"system"!==e.role).map(e=>`${e.role.toUpperCase()}: ${e.parts[0].text.replace(/<[^>]*>?/gm,"")}`).join("\n");appendMessage("Summarizing...","user"),appendMessage("","loading");try{const t=await runGeminiText(`Summarize this:\n${e}`,null,"You are a summarizer.");removeLoadingMessage(),appendMessage(`<span class="font-bold text-aura-green">Summary:</span><br>${formatAIResponse(t)}`,"ai")}catch(e){removeLoadingMessage(),appendMessage(`Error: ${e.message}`,"ai")}finally{isLoading=!1,userInput.disabled=!1,sendButton.disabled=!1,userInput.value="",userInput.focus()}}
+        async function readMessageAloud(e,t,n="Achernar"){if(!e||isLoading)return;if(currentAudio)return currentAudio.pause(),currentAudio=null,document.querySelectorAll(".tts-btn").forEach(e=>e.classList.remove("playing")),void(t.innerHTML='<i class="fas fa-volume-up"></i>');t.classList.add("playing"),t.innerHTML='<i class="fas fa-circle-notch fa-spin"></i>';try{const r=await fetchWithExponentialBackoff(TTS_API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:`Say: ${e}`}]}],generationConfig:{responseModalities:["AUDIO"],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:n}}}}})}),a=await r.json(),o=a?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;if(!o)throw new Error("No audio");const c=pcmToWav(new Int16Array(base64ToArrayBuffer(o)));currentAudio=new Audio(URL.createObjectURL(c)),document.querySelectorAll(".tts-btn").forEach(e=>e.classList.remove("playing")),t.classList.add("playing"),t.innerHTML='<i class="fas fa-volume-up"></i>',currentAudio.play(),currentAudio.onended=()=>{t.classList.remove("playing"),currentAudio=null}}catch(e){console.error(e),t.classList.remove("playing"),t.innerHTML='<i class="fas fa-volume-up"></i>'}}
+        
+        // --- UTILITY FUNCTIONS ---
+        function calculateBMI(){
+            const e=parseFloat(document.getElementById("weight").value);
+            const t=parseFloat(document.getElementById("height").value);
+            if(!e||!t)return showTemporaryMessage("Invalid input","error");
+            const n=(e/(t*t)).toFixed(2);
+            const resultCard = document.getElementById("bmi-result-card");
+            resultCard.classList.remove("hidden");
+            document.getElementById("bmi-value").textContent=n;
+            const advice = document.getElementById("bmi-advice");
+            advice.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating advice...';
+            let category = n<18.5?"Underweight":n<25?"Normal":"Overweight";
+            runGeminiText(`BMI is ${n} (${category}). Give 1 sentence advice.`,null,"Health mentor.")
+                .then(res => advice.innerHTML = formatAIResponse(res))
+                .catch(err => advice.innerHTML = `Error: ${err.message}`);
+        }
+
+        async function analyzeDream(){
+            const e=document.getElementById("dream-input").value;
+            const resBox = document.getElementById("dream-result");
+            const btn = document.getElementById("dream-btn");
+            if(!e) return showTemporaryMessage("Please describe your dream", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Interpreting...';
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = "Connecting to dream realm...";
+            try {
+                const res = await runGeminiText(`Interpret dream: ${e}`,null,"Dream interpreter.");
+                resBox.innerHTML = formatAIResponse(res);
+            } catch(err) { resBox.innerHTML = `Error: ${err.message}`; }
+            finally { btn.disabled = false; btn.innerHTML = 'Interpret'; }
+        }
+
+        async function generateStudyPlan(){
+            const e=document.getElementById("plan-topic").value;
+            const t=document.getElementById("plan-time").value;
+            const resBox = document.getElementById("plan-result");
+            const btn = document.getElementById("plan-btn");
+            if(!e) return showTemporaryMessage("Please enter a topic", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Planning...';
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = "Drafting your schedule...";
+            try {
+                const res = await runGeminiText(`Create a concise study plan for ${e} covering ${t || "general duration"}.`,null,"Tutor.");
+                resBox.innerHTML = formatAIResponse(res);
+            } catch(err) { resBox.innerHTML = `Error: ${err.message}`; }
+            finally { btn.disabled = false; btn.innerHTML = 'Plan'; }
+        }
+
+        async function generateRecipe(){
+            const e=document.getElementById("chef-input").value;
+            const resBox = document.getElementById("chef-result");
+            const btn = document.getElementById("chef-btn");
+            if(!e) return showTemporaryMessage("Enter ingredients", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cooking...';
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = "Firing up the stove...";
+            try {
+                const res = await runGeminiText(`Create a recipe using: ${e}`,null,"Chef.");
+                resBox.innerHTML = formatAIResponse(res);
+            } catch(err) { resBox.innerHTML = `Error: ${err.message}`; }
+            finally { btn.disabled = false; btn.innerHTML = 'Cook'; }
+        }
+
+        async function translateText(){
+            const e=document.getElementById("trans-input").value;
+            const t=document.getElementById("trans-lang").value;
+            const resBox = document.getElementById("trans-result");
+            const btn = document.getElementById("trans-btn");
+            if(!e || !t) return showTemporaryMessage("Fill both fields", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = "Processing...";
+            try {
+                const res = await runGeminiText(`Translate to ${t}: ${e}`,null,"Translator.");
+                resBox.innerHTML = formatAIResponse(res);
+            } catch(err) { resBox.innerHTML = `Error: ${err.message}`; }
+            finally { btn.disabled = false; btn.innerHTML = 'Translate'; }
+        }
+
+        async function checkAQI(){
+            const e=document.getElementById("aqi-location").value;
+            if(!e)return showTemporaryMessage("Enter location","warning");
+            const btn = document.getElementById("aqi-btn");
+            const resBox = document.getElementById("aqi-result");
+            const valDisplay = document.getElementById("aqi-value-display");
+            const textDisplay = document.getElementById("aqi-text");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+            resBox.classList.remove("hidden");
+            valDisplay.textContent="...";
+            textDisplay.textContent="Fetching data...";
+            try{
+                const prompt = `Find the real-time Air Quality Index (AQI) for ${e}. Return the numeric AQI value first, then the category (e.g. Good, Unhealthy), then specific health advice.`;
+                const res = await runGeminiText(prompt, null, "You are an environmental scientist.");
+                const a = res.match(/\d{1,3}/);
+                const o = a ? a[0] : "?";
+                valDisplay.textContent = o;
+                textDisplay.innerHTML = formatAIResponse(res);
+            } catch(err){
+                console.error(err);
+                valDisplay.textContent="?";
+                textDisplay.textContent="Could not fetch AQI.";
+            } finally {
+                btn.disabled = false; btn.innerHTML = 'Check';
+            }
+        }
+        
+        async function generatePlaylist(){
+            const e=document.getElementById("tunes-input").value;
+            const resBox = document.getElementById("tunes-result");
+            const btn = document.getElementById("tunes-btn");
+            if(!e) return showTemporaryMessage("Enter a mood", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Curating...';
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = "Selecting tracks...";
+            try {
+                const res = await runGeminiText(`Generate 5 songs for: ${e}`,null,"Music Curator.");
+                resBox.innerHTML = formatAIResponse(res);
+            } catch(err) { resBox.innerHTML = `Error: ${err.message}`; }
+            finally { btn.disabled = false; btn.innerHTML = '✨ Generate Playlist'; }
+        }
+
+        async function verifyFact(){
+            const e=document.getElementById("truth-input").value;
+            const resBox = document.getElementById("truth-result");
+            const btn = document.getElementById("truth-btn");
+            if(!e) return showTemporaryMessage("Enter a statement", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Investigating...';
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = "Searching truth...";
+            try {
+                const res = await runGeminiText(`Verify: ${e}`,null,"Fact Checker.");
+                resBox.innerHTML = formatAIResponse(res);
+            } catch(err) { resBox.innerHTML = `Error: ${err.message}`; }
+            finally { btn.disabled = false; btn.innerHTML = '✨ Verify Fact'; }
+        }
+
+        async function startLingo() {
+            const lang = document.getElementById('lingo-lang').value;
+            const scenario = document.getElementById('lingo-scenario').value;
+            const resBox = document.getElementById('lingo-result');
+            const btn = document.getElementById('lingo-btn');
+            if (!lang || !scenario) return showTemporaryMessage("Please fill in all fields", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = 'Initializing scenario...';
+            try {
+                const prompt = `Start a roleplay conversation in ${lang} about: ${scenario}. You speak first. Provide the English translation in parentheses.`;
+                const response = await runGeminiText(prompt, null, "You are a language tutor.");
+                resBox.innerHTML = formatAIResponse(response);
+            } catch (e) {
+                resBox.innerHTML = `Error: ${e.message}`;
+            } finally {
+                btn.disabled = false; btn.innerHTML = '✨ Start Conversation';
+            }
+        }
+
+        async function explainTopic() {
+            const topic = document.getElementById('explain-topic').value;
+            const level = document.getElementById('explain-level').value;
+            const resBox = document.getElementById('explain-result');
+            const btn = document.getElementById('explain-btn');
+            if (!topic) return showTemporaryMessage("Please enter a topic", "warning");
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Simplifying...';
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = 'Breaking it down...';
+            try {
+                const prompt = `Explain this topic: "${topic}" to a ${level}. Use analogies.`;
+                const response = await runGeminiText(prompt, null, "You are an expert explainer.");
+                resBox.innerHTML = formatAIResponse(response);
+            } catch (e) {
+                resBox.innerHTML = `Error: ${e.message}`;
+            } finally {
+                btn.disabled = false; btn.innerHTML = '✨ Explain';
+            }
+        }
+
+        function addToPrompt(text) { const p = document.getElementById("studio-prompt"); p.value += (p.value ? ", " : "") + text; }
+        async function generateImage() {
+            const prompt = document.getElementById("studio-prompt").value.trim();
+            if (!prompt) return showTemporaryMessage("Please enter a description", "warning");
+            const btn = document.getElementById("studio-btn");
+            const placeholder = document.getElementById("studio-placeholder");
+            const img = document.getElementById("studio-result");
+            const dlBtn = document.getElementById("download-btn");
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generating...';
+            placeholder.textContent = "Dreaming up your image...";
+            img.classList.add("hidden"); dlBtn.classList.add("hidden");
+            
+            try {
+                const response = await fetchWithExponentialBackoff(IMAGE_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        instances: [{ prompt: prompt }],
+                        parameters: { sampleCount: 1 }
+                    })
+                });
+                
+                if (!response.ok) throw new Error("Generation failed");
+                
+                const data = await response.json();
+                const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                
+                if (base64) {
+                    const imageUrl = `data:image/png;base64,${base64}`;
+                    img.src = imageUrl;
+                    img.classList.remove("hidden");
+                    dlBtn.classList.remove("hidden");
+                    placeholder.textContent = "";
+                } else {
+                    throw new Error("No image data returned");
+                }
+            } catch (e) {
+                console.error(e);
+                placeholder.textContent = `Error: ${e.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✨ Generate with Imagen 3';
+            }
+        }
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.href = document.getElementById('studio-result').src;
+            link.download = 'aura-studio-creation.png';
+            link.click();
+        }
+
+        function addToVideoPrompt(text) { const p = document.getElementById("video-prompt"); p.value += (p.value ? ", " : "") + text; }
+        function generateVideo() {
+            const prompt = document.getElementById("video-prompt").value.trim();
+            if (!prompt) return showTemporaryMessage("Please enter a video description", "warning");
+            const btn = document.getElementById("video-btn");
+            const loader = document.getElementById("video-loader");
+            const result = document.getElementById("video-result");
+            const placeholder = document.getElementById("video-placeholder");
+            const thumbnail = document.getElementById("video-thumbnail");
+
+            btn.disabled = true;
+            placeholder.classList.add("hidden");
+            result.classList.add("hidden");
+            loader.classList.remove("hidden");
+            loader.classList.add("flex");
+            
+            fetchWithExponentialBackoff(IMAGE_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    instances: [{ prompt: prompt + ", cinematic movie shot, highly detailed, 4k" }],
+                    parameters: { sampleCount: 1 }
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const base64 = data.predictions?.[0]?.bytesBase64Encoded;
+                if(base64) {
+                    thumbnail.src = `data:image/png;base64,${base64}`;
+                    loader.classList.add("hidden");
+                    loader.classList.remove("flex");
+                    result.classList.remove("hidden");
+                    result.classList.add("flex");
+                } else {
+                    throw new Error("Thumbnail generation failed");
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                showTemporaryMessage("Simulation failed, using default asset.", "error");
+                loader.classList.add("hidden");
+                loader.classList.remove("flex");
+                result.classList.remove("hidden");
+                result.classList.add("flex");
+                thumbnail.src = "https://placehold.co/600x400/000000/FFFFFF?text=Preview+Unavailable"; 
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        }
+
+        function playMockVideo() {
+            const overlay = document.querySelector('.video-overlay');
+            const thumbnail = document.getElementById('video-thumbnail');
+            const videoResult = document.getElementById('video-result');
+            overlay.style.display = 'none';
+            thumbnail.style.display = 'none';
+            const video = document.createElement('video');
+            video.className = "w-full h-full object-cover rounded-2xl";
+            video.controls = true;
+            video.autoplay = true;
+            video.src = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"; 
+            videoResult.appendChild(video);
+        }
+
+        let activeGameInterval = null; let pacmanState = null; let tttState = null;
+        function stopCurrentGame() { if (activeGameInterval) clearInterval(activeGameInterval); activeGameInterval = null; pacmanState = null; tttState = null; document.removeEventListener('keydown', handlePacmanInput); }
+
+        function startGame(e){
+            stopCurrentGame(); 
+            const container = document.getElementById("game-container");
+            if (e === 'debate-duel') {
+                container.innerHTML = `<div class="w-full text-left"><h3 class="text-2xl font-bold mb-4 text-gray-700 dark:text-gray-200 text-center">Debate Duel ✨</h3><input id="debate-topic" placeholder="Enter debate topic..." class="w-full p-3 mb-4 rounded-2xl border dark:bg-gray-800 dark:border-gray-700"><button onclick="startDebate()" class="w-full py-3 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold rounded-3xl shadow hover:opacity-90">Start Debate</button><div id="debate-content" class="mt-6 space-y-4 h-64 overflow-y-auto custom-scrollbar p-4 bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 hidden"></div></div>`;
+            } else if (e === 'pac-man') { startPacmanGame(container); } else if (e === 'tic-tac-toe') { startTicTacToe(container); } else if(e === 'snake-ladder') { startSnakeLadder(container); } else { container.innerHTML=`Starting ${e}...` }
+        }
+
+        async function generateNewQuizUI() {
+            document.getElementById('game-container').innerHTML = '<div class="flex flex-col items-center justify-center h-full"><i class="fas fa-spinner fa-spin text-4xl text-green-500 mb-4"></i><p class="text-gray-500">Generating Quiz...</p></div>';
+            const prompt = "Generate 1 academic multiple choice question as a JSON object with these fields: question, topic, options (array of 4 strings), answer (string, A/B/C/D). Example: {\"question\": \"...\", \"topic\": \"Math\", \"options\": [\"1\", \"2\", \"3\", \"4\"], \"answer\": \"A\"}";
+            try {
+                const response = await fetchWithExponentialBackoff(TEXT_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: "application/json" } 
+                    })
+                });
+                if (!response.ok) throw new Error("API Error");
+                const data = await response.json();
+                const quizData = JSON.parse(data.candidates[0].content.parts[0].text);
+                renderQuiz(quizData);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('game-container').innerHTML = '<div class="text-red-500 p-4 text-center">Error generating quiz. Please try again.</div>';
+            }
+        }
+        function renderQuiz(e){document.getElementById("game-container").innerHTML=`<div class="text-left w-full p-4 bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700"><div class="text-sm text-green-500 font-bold mb-2 uppercase tracking-wider">${e.topic}</div><h3 class="text-lg font-bold mb-4 dark:text-white">${e.question}</h3><div class="space-y-2">${e.options.map((t,n)=>`<button class="block w-full text-left p-3 rounded-2xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" onclick="checkQuizAnswer(this, '${["A","B","C","D"][n]}', '${e.answer}')"><span class="font-bold mr-2">${["A","B","C","D"][n]}:</span> ${t}</button>`).join("")}</div><div id="quiz-feedback" class="mt-4 font-bold hidden"></div><button onclick="generateNewQuizUI()" class="mt-4 text-sm text-gray-500 hover:text-green-500"><i class="fas fa-sync mr-1"></i> New Question</button></div>`}
+        function checkQuizAnswer(btn, selected, correct) {
+            const feedback = document.getElementById('quiz-feedback');
+            if(selected === correct) {
+                btn.classList.add('bg-green-100', 'dark:bg-green-900', 'border', 'border-green-500');
+                feedback.innerHTML = '<span class="text-green-500">Correct! Great job.</span>';
+            } else {
+                btn.classList.add('bg-red-100', 'dark:bg-red-900', 'border', 'border-red-500');
+                feedback.innerHTML = `<span class="text-red-500">Incorrect. The answer was ${correct}.</span>`;
+            }
+            feedback.classList.remove('hidden');
+        }
+
+        let slState = { p1: 0, p2: 0, turn: 1 }; 
+        const snakes = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
+        const ladders = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
+        function startSnakeLadder(container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-bold mb-2 text-purple-500">Snake & Ladder (You vs AI)</h3>
+                    <canvas id="sl-canvas" width="300" height="300" class="bg-white rounded-2xl border border-gray-400"></canvas>
+                    <div class="mt-4 flex gap-4 items-center">
+                         <button onclick="rollDice()" id="roll-btn" class="px-4 py-2 bg-purple-500 text-white rounded-full hover:bg-purple-600">Roll Dice 🎲</button>
+                         <span id="sl-status" class="font-bold dark:text-white">Start!</span>
+                    </div>
+                </div>
+            `;
+            slState = { p1: 1, p2: 1, turn: 1, gameOver: false }; drawSLBoard();
+        }
+        function drawSLBoard() {
+            const canvas = document.getElementById('sl-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const size = 30; 
+            ctx.clearRect(0,0,300,300);
+            ctx.font = "10px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            for (let i = 0; i < 100; i++) {
+                let x = (i % 10) * size;
+                let y = Math.floor(i / 10) * size;
+                let row = Math.floor(i / 10);
+                if (row % 2 !== 0) x = (9 - (i % 10)) * size; 
+                let drawY = 300 - y - size; 
+                ctx.fillStyle = (row % 2 === 0 ? (i % 2 === 0) : (i % 2 !== 0)) ? "#f3e8ff" : "#ffffff"; 
+                ctx.fillRect(x, drawY, size, size); ctx.strokeRect(x, drawY, size, size);
+                ctx.fillStyle = "#aaa"; ctx.fillText(i+1, x + size/2, drawY + size/2);
+            }
+            const getCoords = (num) => {
+                let i = num - 1; let row = Math.floor(i / 10); let x = (i % 10) * size;
+                if (row % 2 !== 0) x = (9 - (i % 10)) * size; 
+                let drawY = 300 - (row * size) - size/2; let drawX = x + size/2;
+                return {x: drawX, y: drawY};
+            };
+            ctx.lineWidth = 2;
+            for(let start in snakes) { let s = getCoords(parseInt(start)); let e = getCoords(snakes[start]); ctx.strokeStyle = "red"; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(s.x, s.y, 2, 0, Math.PI*2); ctx.fill(); }
+            for(let start in ladders) { let s = getCoords(parseInt(start)); let e = getCoords(ladders[start]); ctx.strokeStyle = "green"; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.fillStyle = "green"; ctx.beginPath(); ctx.arc(s.x, s.y, 2, 0, Math.PI*2); ctx.fill(); }
+            let p1c = getCoords(slState.p1); ctx.fillStyle = "blue"; ctx.beginPath(); ctx.arc(p1c.x - 5, p1c.y, 8, 0, Math.PI*2); ctx.fill();
+            let p2c = getCoords(slState.p2); ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(p2c.x + 5, p2c.y, 8, 0, Math.PI*2); ctx.fill();
+        }
+        window.rollDice = function() {
+            if (slState.gameOver || slState.turn !== 1) return;
+            const roll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('sl-status').innerText = `You rolled ${roll}`;
+            movePlayer(1, roll);
+        }
+        function movePlayer(player, roll) {
+            let current = player === 1 ? slState.p1 : slState.p2; let next = current + roll;
+            if (next > 100) next = current; 
+            if (snakes[next]) next = snakes[next]; if (ladders[next]) next = ladders[next];
+            if (player === 1) slState.p1 = next; else slState.p2 = next;
+            drawSLBoard();
+            if (next === 100) { document.getElementById('sl-status').innerText = player === 1 ? "You Win! 🎉" : "AI Wins! 🤖"; slState.gameOver = true; return; }
+            if (player === 1) { slState.turn = 2; document.getElementById('roll-btn').disabled = true; document.getElementById('roll-btn').classList.add('opacity-50'); setTimeout(() => { const aiRoll = Math.floor(Math.random() * 6) + 1; document.getElementById('sl-status').innerText = `AI rolled ${aiRoll}`; movePlayer(2, aiRoll); }, 1000); } else { slState.turn = 1; document.getElementById('roll-btn').disabled = false; document.getElementById('roll-btn').classList.remove('opacity-50'); }
+        }
+
+        function startTicTacToe(container) { container.innerHTML = `<div class="flex flex-col items-center"><h3 class="text-xl font-bold mb-4 text-blue-500">Tic-Tac-Toe (You: X)</h3><div id="ttt-board" class="ttt-grid"></div><p id="ttt-status" class="mt-4 font-bold text-lg text-gray-600 dark:text-gray-300"></p><button onclick="startGame('tic-tac-toe')" class="mt-4 px-4 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600">Restart</button></div>`; tttState = { board: Array(9).fill(null), turn: 'X', gameOver: false }; renderTTTBoard(); }
+        function renderTTTBoard() { const b = document.getElementById('ttt-board'); b.innerHTML = ''; tttState.board.forEach((c, i) => { const d = document.createElement('div'); d.className = `ttt-cell ${c ? c.toLowerCase() : ''}`; d.textContent = c || ''; d.onclick = () => handleTTTMove(i); b.appendChild(d); }); }
+        function handleTTTMove(i) { if (tttState.gameOver || tttState.board[i] || tttState.turn !== 'X') return; tttState.board[i] = 'X'; renderTTTBoard(); checkTTTWin(); if (!tttState.gameOver) { tttState.turn = 'O'; document.getElementById('ttt-status').textContent = "AI Thinking..."; setTimeout(aiTTTMove, 500); } }
+        function aiTTTMove() { if (tttState.gameOver) return; const e = tttState.board.map((v, i) => v === null ? i : null).filter(v => v !== null); if (e.length > 0) { tttState.board[e[Math.floor(Math.random() * e.length)]] = 'O'; renderTTTBoard(); checkTTTWin(); if (!tttState.gameOver) { tttState.turn = 'X'; document.getElementById('ttt-status').textContent = "Your Turn"; } } }
+        function checkTTTWin() { const w = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; let v = null; w.forEach(a => { if (tttState.board[a[0]] && tttState.board[a[0]] === tttState.board[a[1]] && tttState.board[a[0]] === tttState.board[a[2]]) v = tttState.board[a[0]]; }); if (v) { tttState.gameOver = true; document.getElementById('ttt-status').textContent = v === 'X' ? "You Win! 🎉" : "AI Wins! 🤖"; } else if (!tttState.board.includes(null)) { tttState.gameOver = true; document.getElementById('ttt-status').textContent = "Draw! 🤝"; } }
+        
+        function startPacmanGame(container) { container.innerHTML = `<div class="flex flex-col items-center"><div class="mb-2 text-xl font-bold text-yellow-500">Score: <span id="pac-score">0</span></div><canvas id="pac-canvas" width="300" height="300" class="bg-black rounded-2xl shadow-lg border-2 border-blue-900"></canvas><div class="mt-4 grid grid-cols-3 gap-2 md:hidden"><div></div><div class="ctrl-btn" onclick="handlePacBtn('ArrowUp')">⬆️</div><div></div><div class="ctrl-btn" onclick="handlePacBtn('ArrowLeft')">⬅️</div><div class="ctrl-btn" onclick="handlePacBtn('ArrowDown')">⬇️</div><div class="ctrl-btn" onclick="handlePacBtn('ArrowRight')">➡️</div></div><p class="mt-2 text-xs text-gray-500">Use Arrow Keys or Buttons to move</p></div>`; const canvas = document.getElementById('pac-canvas'); const ctx = canvas.getContext('2d'); const cellSize = 20; const rows = 15, cols = 15; const map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,1,1,0,1,0,1,0,1,0,1,1,0,1],[1,0,0,0,0,1,0,0,0,1,0,0,0,0,1],[1,1,0,1,1,1,0,1,0,1,1,1,0,1,1],[1,0,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,1,1,0,1,2,2,2,1,0,1,1,0,1],[1,0,1,1,0,1,2,9,2,1,0,1,1,0,1],[1,0,0,0,0,1,2,2,2,1,0,0,0,0,1],[1,1,0,1,1,1,0,1,0,1,1,1,0,1,1],[1,0,0,0,0,1,0,1,0,1,0,0,0,0,1],[1,0,1,1,0,0,0,0,0,0,0,1,1,0,1],[1,0,0,0,0,1,1,1,1,1,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]; let pac = { x: 7, y: 7, dx: 0, dy: 0, nextDx: 0, nextDy: 0 }; let ghosts = [{x:1, y:1, color:'red'}, {x:13, y:1, color:'pink'}, {x:1, y:12, color:'cyan'}]; let score = 0; pacmanState = { map, pac, ghosts, score }; function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); for(let r=0; r<rows; r++) { for(let c=0; c<cols; c++) { if(map[r] && map[r][c] === 1) { ctx.fillStyle = "#1e3a8a"; ctx.fillRect(c*cellSize, r*cellSize, cellSize, cellSize); } else if(map[r] && map[r][c] === 0) { ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.arc(c*cellSize + cellSize/2, r*cellSize + cellSize/2, 3, 0, Math.PI*2); ctx.fill(); } } } ctx.fillStyle = "yellow"; ctx.beginPath(); ctx.arc(pac.x*cellSize + cellSize/2, pac.y*cellSize + cellSize/2, cellSize/2 - 2, 0.2 * Math.PI, 1.8 * Math.PI); ctx.lineTo(pac.x*cellSize + cellSize/2, pac.y*cellSize + cellSize/2); ctx.fill(); ghosts.forEach(g => { ctx.fillStyle = g.color; ctx.fillRect(g.x*cellSize + 2, g.y*cellSize + 2, cellSize - 4, cellSize - 4); }); } function update() { if (pac.nextDx !== 0 || pac.nextDy !== 0) { if (map[pac.y + pac.nextDy][pac.x + pac.nextDx] !== 1) { pac.dx = pac.nextDx; pac.dy = pac.nextDy; pac.nextDx = 0; pac.nextDy = 0; } } if (map[pac.y + pac.dy][pac.x + pac.dx] !== 1) { pac.x += pac.dx; pac.y += pac.dy; } if (map[pac.y][pac.x] === 0) { map[pac.y][pac.x] = 2; score += 10; document.getElementById('pac-score').innerText = score; if(score >= 660) { alert("You Win!"); stopCurrentGame(); } } if(Math.random() < 0.3) { ghosts.forEach(g => { const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}]; dirs.sort((a,b) => { const distA = Math.abs((g.x+a.x)-pac.x) + Math.abs((g.y+a.y)-pac.y); const distB = Math.abs((g.x+b.x)-pac.x) + Math.abs((g.y+b.y)-pac.y); return distA - distB; }); for(let d of dirs) { if(map[g.y+d.y][g.x+d.x] !== 1) { g.x += d.x; g.y += d.y; break; } } }); } ghosts.forEach(g => { if(g.x === pac.x && g.y === pac.y) { alert("Game Over! Score: " + score); stopCurrentGame(); } }); draw(); } document.addEventListener('keydown', handlePacmanInput); activeGameInterval = setInterval(update, 200); }
+        function handlePacmanInput(e) { if(!pacmanState) return; if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); const pac = pacmanState.pac; if(e.key === 'ArrowUp') { pac.nextDx = 0; pac.nextDy = -1; } if(e.key === 'ArrowDown') { pac.nextDx = 0; pac.nextDy = 1; } if(e.key === 'ArrowLeft') { pac.nextDx = -1; pac.nextDy = 0; } if(e.key === 'ArrowRight') { pac.nextDx = 1; pac.nextDy = 0; } }
+        window.handlePacBtn = function(key) { handlePacmanInput({ key: key, preventDefault: () => {} }); };
+        async function startDebate() { const topic = document.getElementById('debate-topic').value; if (!topic) return showTemporaryMessage("Please enter a topic!", "warning"); const contentDiv = document.getElementById('debate-content'); contentDiv.classList.remove('hidden'); contentDiv.innerHTML = '<div class="text-center text-gray-500 animate-pulse">Generators warming up...</div>'; const prompt = `Generate a short 2-turn debate script between Neuralis (Logical, Professional) and Zephyr (Creative, Emotional) on the topic: "${topic}". Format as: **Neuralis:** [Argument] **Zephyr:** [Rebuttal] (Repeat once more)`; try { const result = await runGeminiText(prompt, null, "You are a scriptwriter for two AI personas."); contentDiv.innerHTML = formatAIResponse(result); } catch (e) { contentDiv.innerHTML = `<div class="text-red-500">Error: ${e.message}</div>`; } }
+        async function generateCode() { const input = document.getElementById('code-input').value; const resultBox = document.getElementById('code-result'); const btn = document.getElementById('code-btn'); if (!input) return showTemporaryMessage("Please describe the code you need.", "warning"); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Writing code...'; resultBox.classList.remove('hidden'); resultBox.textContent = "Generating..."; try { const code = await runGeminiText(`Write code for: ${input}. Provide ONLY the code block with brief comments. No explanation text outside the block.`, null, "You are an expert programmer."); resultBox.innerHTML = formatAIResponse(code); } catch (e) { resultBox.textContent = `Error: ${e.message}`; } finally { btn.disabled = false; btn.innerHTML = '✨ Generate Code'; } }
+        function continueCreativeWriting(){const e=document.getElementById("creative-editor").value;e&&(document.getElementById("editor-result").innerHTML="Thinking...",runGeminiText(`Continue story: ${e}`,null,"Storyteller.").then(e=>{document.getElementById("creative-editor").value+=`\n${e}`,document.getElementById("editor-result").innerHTML="Continued!"}))}
+        function changeTextTone(){const e=document.getElementById("creative-editor").value,t=document.getElementById("tone-selector").value;e&&(document.getElementById("editor-result").innerHTML="Rewriting...",runGeminiText(`Rewrite in ${t} tone: ${e}`,null,"Editor.").then(e=>document.getElementById("editor-result").innerHTML=formatAIResponse(e)))}
+        // ADDED: Export/History Stubs
+        function exportChat(){ showTemporaryMessage("Chat Export Coming Soon!", "info"); }
+        function loadHistory(){ showTemporaryMessage("History Sync Coming Soon!", "info"); }
+        window.onload=function(){toggleView("chat"),analysisImage.src="https://placehold.co/300x160/6D28D9/FFFFFF?text=Paste+Image"};
+    </script>
+</body>
+</html>
